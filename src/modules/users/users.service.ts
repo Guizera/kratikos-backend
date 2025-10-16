@@ -78,4 +78,17 @@ export class UsersService {
   async validatePassword(user: User, password: string): Promise<boolean> {
     return bcrypt.compare(password, user.password_hash);
   }
+
+  async findByGoogleId(googleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { googleId } });
+  }
+
+  async findByAppleId(appleId: string): Promise<User | null> {
+    return this.usersRepository.findOne({ where: { appleId } });
+  }
+
+  async createSocialUser(userData: Partial<User>): Promise<User> {
+    const user = this.usersRepository.create(userData);
+    return this.usersRepository.save(user);
+  }
 }

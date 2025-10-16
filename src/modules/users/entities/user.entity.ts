@@ -23,9 +23,21 @@ export class User {
   @ApiProperty({ description: 'Email do usuário' })
   email: string;
 
-  @Column()
+  @Column({ nullable: true })
   @Exclude()
   password_hash: string;
+
+  @Column({ nullable: true, name: 'google_id' })
+  @ApiProperty({ description: 'Google ID do usuário', required: false })
+  googleId: string;
+
+  @Column({ nullable: true, name: 'apple_id' })
+  @ApiProperty({ description: 'Apple ID do usuário', required: false })
+  appleId: string;
+
+  @Column({ nullable: true, name: 'photo_url' })
+  @ApiProperty({ description: 'URL da foto do perfil', required: false })
+  photoUrl: string;
 
   @Column({
     type: 'enum',
