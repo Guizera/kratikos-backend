@@ -103,6 +103,8 @@ Para cada notícia, retorne um JSON com os seguintes campos:
 Formato de resposta: array JSON com as notícias.`;
 
     try {
+      this.logger.log(`Chamando OpenAI API com modelo: ${this.openaiModel}`);
+      
       const response = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
@@ -127,18 +129,30 @@ Formato de resposta: array JSON com as notícias.`;
       });
 
       if (!response.ok) {
-        throw new Error(`OpenAI API retornou status ${response.status}`);
+        const errorData = await response.json();
+        this.logger.error(`OpenAI API erro ${response.status}: ${JSON.stringify(errorData)}`);
+        throw new Error(`OpenAI API retornou status ${response.status}: ${JSON.stringify(errorData)}`);
       }
 
       const data = await response.json();
       const content = data.choices[0]?.message?.content;
 
       if (!content) {
+        this.logger.error('Resposta vazia da OpenAI');
         throw new Error('Resposta vazia da OpenAI');
       }
 
+      this.logger.log('OpenAI respondeu com sucesso, parseando JSON...');
+
       // Parse o JSON retornado
-      const newsData = JSON.parse(content);
+      let newsData;
+      try {
+        newsData = JSON.parse(content);
+      } catch (parseError) {
+        this.logger.error(`Erro ao parsear resposta da OpenAI: ${parseError.message}`);
+        this.logger.error(`Conteúdo recebido: ${content.substring(0, 200)}...`);
+        throw new Error('Erro ao parsear resposta da OpenAI');
+      }
 
       // Transformar em NewsArticle
       return newsData.map((item: any, index: number) => ({
