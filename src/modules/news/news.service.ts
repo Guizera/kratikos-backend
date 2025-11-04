@@ -11,6 +11,12 @@ export class NewsService {
   constructor(private configService: ConfigService) {
     this.openaiApiKey = this.configService.get<string>('openai.apiKey') || '';
     this.openaiModel = this.configService.get<string>('openai.model') || 'gpt-4';
+    
+    // Log para debug (remover depois)
+    this.logger.log(`OpenAI API Key configurada: ${this.openaiApiKey ? 'SIM' : 'NÃO'}`);
+    if (this.openaiApiKey) {
+      this.logger.log(`OpenAI API Key (primeiros 10 caracteres): ${this.openaiApiKey.substring(0, 10)}...`);
+    }
   }
 
   async getInternationalNews(
