@@ -6,15 +6,17 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PostsModule } from './modules/posts/posts.module';
+import { NewsModule } from './modules/news/news.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
+import openaiConfig from './config/openai.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, appConfig],
+      load: [databaseConfig, jwtConfig, appConfig, openaiConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -47,6 +49,7 @@ import appConfig from './config/app.config';
     UsersModule,
     AuthModule,
     PostsModule,
+    NewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
