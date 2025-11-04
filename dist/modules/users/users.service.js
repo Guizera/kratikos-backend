@@ -106,6 +106,16 @@ let UsersService = class UsersService {
     async validatePassword(user, password) {
         return bcrypt.compare(password, user.password_hash);
     }
+    async findByGoogleId(googleId) {
+        return this.usersRepository.findOne({ where: { googleId } });
+    }
+    async findByAppleId(appleId) {
+        return this.usersRepository.findOne({ where: { appleId } });
+    }
+    async createSocialUser(userData) {
+        const user = this.usersRepository.create(userData);
+        return this.usersRepository.save(user);
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

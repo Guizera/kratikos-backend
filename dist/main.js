@@ -35,7 +35,7 @@ async function bootstrap() {
             environment: configService.get('app.environment'),
         });
     });
-    const port = configService.get('app.port');
+    const port = configService.get('app.port') || process.env.PORT || 3000;
     await app.listen(port, '0.0.0.0');
     console.log(`🚀 Kratikos API rodando na porta ${port}`);
     console.log(`🌍 Ambiente: ${configService.get('app.environment')}`);
@@ -43,5 +43,8 @@ async function bootstrap() {
         console.log(`📖 Documentação: http://localhost:${port}/api`);
     }
 }
-bootstrap();
+bootstrap().catch((error) => {
+    console.error('❌ Erro ao inicializar aplicação:', error);
+    process.exit(1);
+});
 //# sourceMappingURL=main.js.map

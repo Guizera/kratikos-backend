@@ -1,0 +1,26 @@
+# Migrations Directory
+
+Armazene aqui os arquivos SQL de migração do banco de dados.
+
+## Nomenclatura
+
+Use o padrão: `YYYY-MM-DD-descricao.sql`
+
+Exemplos:
+- `2025-10-16-add-social-auth.sql`
+- `2025-10-20-create-notifications-table.sql`
+- `2025-11-01-add-user-preferences.sql`
+
+## Estrutura de Migration
+
+```sql
+-- Migração: [Descrição curta]
+-- Data: YYYY-MM-DD
+-- Autor: [Seu Nome]
+
+-- [SQL aqui]
+
+-- Rollback (comentado para referência):
+-- [SQL de rollback aqui]
+```
+

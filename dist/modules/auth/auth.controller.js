@@ -17,12 +17,16 @@ const common_1 = require("@nestjs/common");
 const swagger_1 = require("@nestjs/swagger");
 const auth_service_1 = require("./auth.service");
 const login_dto_1 = require("./dto/login.dto");
+const social_auth_dto_1 = require("./dto/social-auth.dto");
 let AuthController = class AuthController {
     constructor(authService) {
         this.authService = authService;
     }
     async login(loginDto) {
         return this.authService.login(loginDto);
+    }
+    async socialLogin(socialAuthDto) {
+        return this.authService.socialLogin(socialAuthDto);
     }
 };
 exports.AuthController = AuthController;
@@ -53,6 +57,34 @@ __decorate([
     __metadata("design:paramtypes", [login_dto_1.LoginDto]),
     __metadata("design:returntype", Promise)
 ], AuthController.prototype, "login", null);
+__decorate([
+    (0, common_1.Post)('social-login'),
+    (0, common_1.HttpCode)(common_1.HttpStatus.OK),
+    (0, swagger_1.ApiOperation)({ summary: 'Autenticar usuário com Google ou Apple' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Usuário autenticado com sucesso via provedor social',
+        schema: {
+            properties: {
+                access_token: { type: 'string' },
+                user: {
+                    type: 'object',
+                    properties: {
+                        id: { type: 'string' },
+                        email: { type: 'string' },
+                        name: { type: 'string' },
+                        photoUrl: { type: 'string' },
+                    },
+                },
+            },
+        },
+    }),
+    (0, swagger_1.ApiResponse)({ status: 401, description: 'Token inválido ou expirado' }),
+    __param(0, (0, common_1.Body)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [social_auth_dto_1.SocialAuthDto]),
+    __metadata("design:returntype", Promise)
+], AuthController.prototype, "socialLogin", null);
 exports.AuthController = AuthController = __decorate([
     (0, swagger_1.ApiTags)('auth'),
     (0, common_1.Controller)('auth'),

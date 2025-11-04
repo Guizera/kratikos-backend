@@ -12,4 +12,7 @@ export declare class UsersService {
     update(id: string, updateUserDto: UpdateUserDto): Promise<User>;
     remove(id: string): Promise<void>;
     validatePassword(user: User, password: string): Promise<boolean>;
+    findByGoogleId(googleId: string): Promise<User | null>;
+    findByAppleId(appleId: string): Promise<User | null>;
+    createSocialUser(userData: Partial<User>): Promise<User>;
 }

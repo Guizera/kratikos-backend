@@ -9,6 +9,9 @@ export declare class User {
     name: string;
     email: string;
     password_hash: string;
+    googleId: string;
+    appleId: string;
+    photoUrl: string;
     status: UserStatus;
     createdAt: Date;
     updatedAt: Date;

@@ -42,10 +42,25 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "email", void 0);
 __decorate([
-    (0, typeorm_1.Column)(),
+    (0, typeorm_1.Column)({ nullable: true }),
     (0, class_transformer_1.Exclude)(),
     __metadata("design:type", String)
 ], User.prototype, "password_hash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'google_id' }),
+    (0, swagger_1.ApiProperty)({ description: 'Google ID do usuário', required: false }),
+    __metadata("design:type", String)
+], User.prototype, "googleId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'apple_id' }),
+    (0, swagger_1.ApiProperty)({ description: 'Apple ID do usuário', required: false }),
+    __metadata("design:type", String)
+], User.prototype, "appleId", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'photo_url' }),
+    (0, swagger_1.ApiProperty)({ description: 'URL da foto do perfil', required: false }),
+    __metadata("design:type", String)
+], User.prototype, "photoUrl", void 0);
 __decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
