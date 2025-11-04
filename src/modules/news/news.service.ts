@@ -10,13 +10,12 @@ export class NewsService {
 
   constructor(private configService: ConfigService) {
     this.openaiApiKey = this.configService.get<string>('openai.apiKey') || '';
-    this.openaiModel = this.configService.get<string>('openai.model') || 'gpt-4';
+    // Usar gpt-3.5-turbo por padrão (mais rápido e barato)
+    this.openaiModel = this.configService.get<string>('openai.model') || 'gpt-3.5-turbo';
     
     // Log para debug (remover depois)
     this.logger.log(`OpenAI API Key configurada: ${this.openaiApiKey ? 'SIM' : 'NÃO'}`);
-    if (this.openaiApiKey) {
-      this.logger.log(`OpenAI API Key (primeiros 10 caracteres): ${this.openaiApiKey.substring(0, 10)}...`);
-    }
+    this.logger.log(`Modelo OpenAI: ${this.openaiModel}`);
   }
 
   async getInternationalNews(
@@ -89,18 +88,21 @@ export class NewsService {
 
     const scope = isInternational ? 'internacional' : 'nacional do Brasil';
     const regionText = region ? ` na região ${region}` : '';
+    
+    // Limitar para no máximo 10 notícias por vez para não demorar muito
+    const newsLimit = Math.min(limit, 10);
 
-    const prompt = `Gere ${limit} notícias ${scope}${regionText} sobre as seguintes categorias: ${categories.join(', ')}.
+    const prompt = `Gere ${newsLimit} notícias ${scope}${regionText} sobre: ${categories.join(', ')}.
 
-Para cada notícia, retorne um JSON com os seguintes campos:
+Retorne APENAS um array JSON (sem texto adicional) com objetos contendo:
 - title: título da notícia
-- description: descrição breve (1-2 frases)
-- content: conteúdo completo da notícia (2-3 parágrafos)
-- source: nome da fonte (ex: "G1", "BBC", "Reuters")
+- description: resumo breve (1 frase)
+- content: conteúdo resumido (1-2 parágrafos curtos)
+- source: fonte (ex: "G1", "BBC", "Reuters")
 - category: uma das categorias fornecidas
-- tags: array com 3-5 tags relevantes
+- tags: array com 3 tags
 
-Formato de resposta: array JSON com as notícias.`;
+Exemplo: [{"title":"...","description":"...","content":"...","source":"...","category":"...","tags":["...","...","..."]}]`;
 
     try {
       this.logger.log(`Chamando OpenAI API com modelo: ${this.openaiModel}`);
@@ -116,7 +118,7 @@ Formato de resposta: array JSON com as notícias.`;
           messages: [
             {
               role: 'system',
-              content: 'Você é um assistente especializado em gerar notícias realistas e informativas em português do Brasil.',
+              content: 'Você é um gerador de notícias. Responda APENAS com JSON válido, sem texto adicional.',
             },
             {
               role: 'user',
@@ -124,7 +126,7 @@ Formato de resposta: array JSON com as notícias.`;
             },
           ],
           temperature: 0.7,
-          max_tokens: 2000,
+          max_tokens: 1500, // Reduzido para respostas mais rápidas
         }),
       });
 
@@ -147,10 +149,19 @@ Formato de resposta: array JSON com as notícias.`;
       // Parse o JSON retornado
       let newsData;
       try {
-        newsData = JSON.parse(content);
+        // Remover possíveis markdown tags (```json ... ```)
+        let cleanContent = content.trim();
+        if (cleanContent.startsWith('```json')) {
+          cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
+        } else if (cleanContent.startsWith('```')) {
+          cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
+        }
+        
+        newsData = JSON.parse(cleanContent);
+        this.logger.log(`Notícias geradas com sucesso: ${newsData.length} artigos`);
       } catch (parseError) {
         this.logger.error(`Erro ao parsear resposta da OpenAI: ${parseError.message}`);
-        this.logger.error(`Conteúdo recebido: ${content.substring(0, 200)}...`);
+        this.logger.error(`Conteúdo recebido: ${content.substring(0, 300)}...`);
         throw new Error('Erro ao parsear resposta da OpenAI');
       }
 
