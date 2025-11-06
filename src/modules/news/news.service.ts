@@ -7,15 +7,21 @@ export class NewsService {
   private readonly logger = new Logger(NewsService.name);
   private readonly openaiApiKey: string;
   private readonly openaiModel: string;
+  private readonly newsApiKey: string;
+  private readonly useRealNews: boolean;
 
   constructor(private configService: ConfigService) {
     this.openaiApiKey = this.configService.get<string>('openai.apiKey') || '';
-    // Usar gpt-3.5-turbo por padrão (mais rápido e barato)
     this.openaiModel = this.configService.get<string>('openai.model') || 'gpt-3.5-turbo';
+    this.newsApiKey = this.configService.get<string>('newsapi.apiKey') || '';
+    this.useRealNews = !!this.newsApiKey; // Se tiver chave, usa notícias reais
     
-    // Log para debug (remover depois)
-    this.logger.log(`OpenAI API Key configurada: ${this.openaiApiKey ? 'SIM' : 'NÃO'}`);
+    this.logger.log(`========= CONFIGURAÇÃO DE NOTÍCIAS =========`);
+    this.logger.log(`OpenAI API Key: ${this.openaiApiKey ? '✅ SIM' : '❌ NÃO'}`);
     this.logger.log(`Modelo OpenAI: ${this.openaiModel}`);
+    this.logger.log(`NewsAPI Key: ${this.newsApiKey ? '✅ SIM' : '❌ NÃO'}`);
+    this.logger.log(`Modo: ${this.useRealNews ? '🌐 NOTÍCIAS REAIS (NewsAPI)' : '⚠️ NOTÍCIAS INVENTADAS (ChatGPT)'}`);
+    this.logger.log(`============================================`);
   }
 
   async getInternationalNews(
@@ -79,12 +85,21 @@ export class NewsService {
     region: string | null,
     limit: number,
   ): Promise<NewsArticle[]> {
+    // Se tiver NewsAPI, buscar notícias REAIS
+    if (this.useRealNews) {
+      this.logger.log('🌐 Buscando notícias REAIS da NewsAPI');
+      return this.fetchRealNews(categories, isInternational, region, limit);
+    }
+    
+    // Senão, gerar com ChatGPT (inventadas)
     if (!this.openaiApiKey) {
       this.logger.warn('Chave da OpenAI não configurada, usando dados mock');
       return isInternational
         ? this.getMockInternationalNews(categories, limit)
         : this.getMockNationalNews(categories, region, limit);
     }
+    
+    this.logger.warn('⚠️ Usando ChatGPT - notícias INVENTADAS (não reais)');
 
     const scope = isInternational ? 'internacional' : 'nacional do Brasil';
     const regionText = region ? ` na região ${region}` : '';
@@ -232,6 +247,80 @@ Ano: ${new Date().getFullYear()}`,
       this.logger.error(`Erro ao chamar OpenAI API: ${error.message}`);
       throw error;
     }
+  }
+
+  private async fetchRealNews(
+    categories: string[],
+    isInternational: boolean,
+    region: string | null,
+    limit: number,
+  ): Promise<NewsArticle[]> {
+    try {
+      const category = this.mapCategoryToNewsAPI(categories[0]);
+      const country = isInternational ? 'us' : 'br'; // Internacional: EUA, Nacional: Brasil
+      const language = isInternational ? 'en' : 'pt';
+      
+      this.logger.log(`Buscando notícias reais: país=${country}, categoria=${category}, idioma=${language}`);
+      
+      const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&pageSize=${limit}&apiKey=${this.newsApiKey}`;
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`NewsAPI retornou status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.status !== 'ok' || !data.articles) {
+        throw new Error('Resposta inválida da NewsAPI');
+      }
+      
+      this.logger.log(`✅ ${data.articles.length} notícias REAIS recebidas da NewsAPI`);
+      
+      // Transformar notícias reais em NewsArticle
+      return data.articles.slice(0, limit).map((article: any, index: number) => ({
+        id: `${Date.now()}-${index}`,
+        title: article.title || 'Sem título',
+        description: article.description || article.title || 'Sem descrição',
+        content: article.content || article.description || 'Conteúdo não disponível',
+        imageUrl: article.urlToImage || 'https://via.placeholder.com/800x400?text=Notícia',
+        source: article.source?.name || 'Fonte desconhecida',
+        sourceUrl: article.url || '#',
+        publishedAt: new Date(article.publishedAt || Date.now()),
+        category: categories[0],
+        tags: this.extractTags(article.title + ' ' + article.description),
+        isInternational,
+        region: region || (isInternational ? 'Internacional' : 'Brasil'),
+      }));
+    } catch (error) {
+      this.logger.error(`Erro ao buscar notícias reais: ${error.message}`);
+      // Fallback para notícias inventadas se a API falhar
+      this.logger.warn('⚠️ Fallback: usando notícias inventadas');
+      return isInternational
+        ? this.getMockInternationalNews(categories, limit)
+        : this.getMockNationalNews(categories, region, limit);
+    }
+  }
+  
+  private mapCategoryToNewsAPI(category: string): string {
+    const mapping: Record<string, string> = {
+      'politics': 'general',
+      'economy': 'business',
+      'technology': 'technology',
+      'sports': 'sports',
+      'entertainment': 'entertainment',
+      'health': 'health',
+      'science': 'science',
+      'environment': 'science',
+    };
+    return mapping[category] || 'general';
+  }
+  
+  private extractTags(text: string): string[] {
+    // Extrair palavras-chave básicas do texto
+    const words = text.toLowerCase().split(/\W+/).filter(w => w.length > 4);
+    return words.slice(0, 3);
   }
 
   private getMockInternationalNews(

@@ -11,12 +11,13 @@ import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
 import openaiConfig from './config/openai.config';
+import newsapiConfig from './config/newsapi.config';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
-      load: [databaseConfig, jwtConfig, appConfig, openaiConfig],
+      load: [databaseConfig, jwtConfig, appConfig, openaiConfig, newsapiConfig],
     }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
