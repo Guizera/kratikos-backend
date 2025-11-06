@@ -96,23 +96,48 @@ export class NewsService {
     const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
     const currentYear = new Date().getFullYear();
 
-    const prompt = `Gere ${newsLimit} notícias ATUAIS de ${currentYear} ${isInternational ? 'do CENÁRIO MUNDIAL' : 'do BRASIL'}${regionText} sobre: ${categories.join(', ')}.
+    const prompt = isInternational 
+      ? `Gere ${newsLimit} notícias INTERNACIONAIS de ${currentDate}${regionText} sobre: ${categories.join(', ')}.
 
-CONTEXTO IMPORTANTE:
-${isInternational 
-  ? '- São notícias INTERNACIONAIS sobre acontecimentos FORA do Brasil (EUA, Europa, Ásia, etc.)'
-  : '- São notícias NACIONAIS sobre o BRASIL e acontecimentos DENTRO do país'}
-- Data de hoje: ${currentDate}
-- Ano: ${currentYear}
-- As notícias devem ser de ${currentYear}, atuais e relevantes
+🌍 ATENÇÃO - NOTÍCIAS INTERNACIONAIS APENAS:
+- Eventos nos EUA, Europa, Ásia, África, Oceania
+- Política mundial (presidentes/líderes estrangeiros)
+- Economia global (Wall Street, BCE, FMI)
+- Conflitos internacionais (Ucrânia, Oriente Médio)
+- Tecnologia de empresas estrangeiras (Apple, Google, Microsoft)
+- Esportes internacionais (Champions League, NBA, NFL)
+- NÃO mencione Brasil, governo brasileiro, ou eventos no Brasil
 
-RESPONDA APENAS COM JSON VÁLIDO (sem markdown, sem texto extra):
+Data: ${currentDate} | Ano: ${currentYear}
 
+RESPONDA APENAS JSON (sem markdown):
 [{
-  "title": "título atual e realista",
-  "description": "resumo de 1 linha",
-  "content": "2 parágrafos curtos com conteúdo atual",
-  "source": "${isInternational ? 'CNN Internacional/BBC/Reuters' : 'G1/Folha/O Globo'}",
+  "title": "título internacional",
+  "description": "resumo 1 linha",
+  "content": "2 parágrafos sobre evento fora do Brasil",
+  "source": "CNN/BBC/Reuters/Al Jazeera",
+  "category": "${categories[0]}",
+  "tags": ["tag1","tag2","tag3"]
+}]`
+      : `Gere ${newsLimit} notícias NACIONAIS DO BRASIL de ${currentDate}${regionText} sobre: ${categories.join(', ')}.
+
+🇧🇷 ATENÇÃO - NOTÍCIAS DO BRASIL APENAS:
+- Política brasileira (Presidente, Congresso, STF)
+- Economia do Brasil (Banco Central, Ibovespa, PIB)
+- Eventos e acontecimentos dentro do Brasil
+- Estados brasileiros (SP, RJ, MG, etc.)
+- Empresas brasileiras (Petrobras, Vale, Banco do Brasil)
+- Esportes brasileiros (Brasileirão, Seleção, CBF)
+- NÃO mencione eventos internacionais fora do Brasil
+
+Data: ${currentDate} | Ano: ${currentYear}
+
+RESPONDA APENAS JSON (sem markdown):
+[{
+  "title": "título sobre o Brasil",
+  "description": "resumo 1 linha",
+  "content": "2 parágrafos sobre evento no Brasil",
+  "source": "G1/Folha/O Globo/UOL",
   "category": "${categories[0]}",
   "tags": ["tag1","tag2","tag3"]
 }]`;
@@ -131,10 +156,17 @@ RESPONDA APENAS COM JSON VÁLIDO (sem markdown, sem texto extra):
           messages: [
             {
               role: 'system',
-              content: `Você é um gerador de notícias atuais de ${new Date().getFullYear()}. 
-- Gere notícias realistas e contextualizadas para o ano atual
-- ${isInternational ? 'Foque em eventos INTERNACIONAIS (fora do Brasil)' : 'Foque em eventos NACIONAIS do BRASIL'}
-- Responda APENAS com JSON válido, sem markdown, sem texto adicional`,
+              content: isInternational 
+                ? `Você é um correspondente INTERNACIONAL que cobre APENAS eventos fora do Brasil.
+REGRA ABSOLUTA: NUNCA mencione Brasil, governo brasileiro ou eventos no Brasil.
+Foque em: EUA, Europa, Ásia, África, eventos mundiais.
+Responda APENAS com JSON válido, sem markdown.
+Ano: ${new Date().getFullYear()}`
+                : `Você é um jornalista BRASILEIRO que cobre APENAS eventos dentro do Brasil.
+REGRA ABSOLUTA: NUNCA mencione eventos internacionais fora do Brasil.
+Foque em: política brasileira, economia nacional, estados brasileiros, eventos no país.
+Responda APENAS com JSON válido, sem markdown.
+Ano: ${new Date().getFullYear()}`,
             },
             {
               role: 'user',
