@@ -89,20 +89,22 @@ export class NewsService {
     const scope = isInternational ? 'internacional' : 'nacional do Brasil';
     const regionText = region ? ` na região ${region}` : '';
     
-    // Limitar para no máximo 10 notícias por vez para não demorar muito
-    const newsLimit = Math.min(limit, 10);
+    // Limitar para no máximo 5 notícias por vez para resposta rápida
+    const newsLimit = Math.min(limit, 5);
 
     const prompt = `Gere ${newsLimit} notícias ${scope}${regionText} sobre: ${categories.join(', ')}.
 
-Retorne APENAS um array JSON (sem texto adicional) com objetos contendo:
-- title: título da notícia
-- description: resumo breve (1 frase)
-- content: conteúdo resumido (1-2 parágrafos curtos)
-- source: fonte (ex: "G1", "BBC", "Reuters")
-- category: uma das categorias fornecidas
-- tags: array com 3 tags
+IMPORTANTE: Responda APENAS com JSON válido, sem markdown, sem explicações.
 
-Exemplo: [{"title":"...","description":"...","content":"...","source":"...","category":"...","tags":["...","...","..."]}]`;
+Formato:
+[{
+  "title": "título curto",
+  "description": "1 frase resumida",
+  "content": "2 parágrafos curtos",
+  "source": "nome da fonte",
+  "category": "${categories[0]}",
+  "tags": ["tag1","tag2","tag3"]
+}]`;
 
     try {
       this.logger.log(`Chamando OpenAI API com modelo: ${this.openaiModel}`);
@@ -126,7 +128,7 @@ Exemplo: [{"title":"...","description":"...","content":"...","source":"...","cat
             },
           ],
           temperature: 0.7,
-          max_tokens: 1500, // Reduzido para respostas mais rápidas
+          max_tokens: 1000, // Reduzido para 5 notícias rápidas
         }),
       });
 
