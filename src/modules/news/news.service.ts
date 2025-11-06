@@ -91,17 +91,28 @@ export class NewsService {
     
     // Limitar para no máximo 5 notícias por vez para resposta rápida
     const newsLimit = Math.min(limit, 5);
+    
+    // Data atual para contexto
+    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
+    const currentYear = new Date().getFullYear();
 
-    const prompt = `Gere ${newsLimit} notícias ${scope}${regionText} sobre: ${categories.join(', ')}.
+    const prompt = `Gere ${newsLimit} notícias ATUAIS de ${currentYear} ${isInternational ? 'do CENÁRIO MUNDIAL' : 'do BRASIL'}${regionText} sobre: ${categories.join(', ')}.
 
-IMPORTANTE: Responda APENAS com JSON válido, sem markdown, sem explicações.
+CONTEXTO IMPORTANTE:
+${isInternational 
+  ? '- São notícias INTERNACIONAIS sobre acontecimentos FORA do Brasil (EUA, Europa, Ásia, etc.)'
+  : '- São notícias NACIONAIS sobre o BRASIL e acontecimentos DENTRO do país'}
+- Data de hoje: ${currentDate}
+- Ano: ${currentYear}
+- As notícias devem ser de ${currentYear}, atuais e relevantes
 
-Formato:
+RESPONDA APENAS COM JSON VÁLIDO (sem markdown, sem texto extra):
+
 [{
-  "title": "título curto",
-  "description": "1 frase resumida",
-  "content": "2 parágrafos curtos",
-  "source": "nome da fonte",
+  "title": "título atual e realista",
+  "description": "resumo de 1 linha",
+  "content": "2 parágrafos curtos com conteúdo atual",
+  "source": "${isInternational ? 'CNN Internacional/BBC/Reuters' : 'G1/Folha/O Globo'}",
   "category": "${categories[0]}",
   "tags": ["tag1","tag2","tag3"]
 }]`;
@@ -120,7 +131,10 @@ Formato:
           messages: [
             {
               role: 'system',
-              content: 'Você é um gerador de notícias. Responda APENAS com JSON válido, sem texto adicional.',
+              content: `Você é um gerador de notícias atuais de ${new Date().getFullYear()}. 
+- Gere notícias realistas e contextualizadas para o ano atual
+- ${isInternational ? 'Foque em eventos INTERNACIONAIS (fora do Brasil)' : 'Foque em eventos NACIONAIS do BRASIL'}
+- Responda APENAS com JSON válido, sem markdown, sem texto adicional`,
             },
             {
               role: 'user',
