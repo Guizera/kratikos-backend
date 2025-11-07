@@ -34,7 +34,7 @@ export class UploadController {
   })
   @ApiResponse({ status: 400, description: 'Arquivo inválido' })
   @ApiResponse({ status: 401, description: 'Não autorizado' })
-  async uploadFile(@UploadedFile() file: Express.Multer.File) {
+  async uploadFile(@UploadedFile() file: any) {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }

@@ -18,7 +18,7 @@ export class UploadService {
     }
   }
 
-  async uploadFile(file: Express.Multer.File): Promise<string> {
+  async uploadFile(file: any): Promise<string> {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }

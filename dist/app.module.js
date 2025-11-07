@@ -18,9 +18,14 @@ const app_service_1 = require("./app.service");
 const users_module_1 = require("./modules/users/users.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const posts_module_1 = require("./modules/posts/posts.module");
+const polls_module_1 = require("./modules/polls/polls.module");
+const news_module_1 = require("./modules/news/news.module");
+const upload_module_1 = require("./modules/upload/upload.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
 const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const app_config_1 = __importDefault(require("./config/app.config"));
+const openai_config_1 = __importDefault(require("./config/openai.config"));
+const newsapi_config_1 = __importDefault(require("./config/newsapi.config"));
 let AppModule = class AppModule {
 };
 exports.AppModule = AppModule;
@@ -29,7 +34,7 @@ exports.AppModule = AppModule = __decorate([
         imports: [
             config_1.ConfigModule.forRoot({
                 isGlobal: true,
-                load: [database_config_1.default, jwt_config_1.default, app_config_1.default],
+                load: [database_config_1.default, jwt_config_1.default, app_config_1.default, openai_config_1.default, newsapi_config_1.default],
             }),
             typeorm_1.TypeOrmModule.forRootAsync({
                 imports: [config_1.ConfigModule],
@@ -59,6 +64,9 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             posts_module_1.PostsModule,
+            polls_module_1.PollsModule,
+            news_module_1.NewsModule,
+            upload_module_1.UploadModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

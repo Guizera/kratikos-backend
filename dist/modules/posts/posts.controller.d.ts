@@ -11,6 +11,9 @@ export declare class PostsController {
         limit: number;
     }>;
     create(createPostDto: CreatePostDto, req: any): Promise<import("./entities/post.entity").Post>;
+    getRemainingPosts(req: any): Promise<{
+        remaining: number;
+    }>;
     findAll(page: number, limit: number): Promise<{
         data: import("./entities/post.entity").Post[];
         total: number;

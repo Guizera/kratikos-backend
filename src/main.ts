@@ -44,7 +44,7 @@ async function bootstrap() {
   }
 
   // Healthcheck endpoint
-  app.getHttpAdapter().get('/', (req, res) => {
+  app.getHttpAdapter().get('/', (req: any, res: any) => {
     res.json({
       status: 'ok',
       message: 'Kratikos API está funcionando!',
