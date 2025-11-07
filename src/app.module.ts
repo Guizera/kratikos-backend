@@ -6,6 +6,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PostsModule } from './modules/posts/posts.module';
+import { PollsModule } from './modules/polls/polls.module';
 import { NewsModule } from './modules/news/news.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
@@ -50,6 +51,7 @@ import newsapiConfig from './config/newsapi.config';
     UsersModule,
     AuthModule,
     PostsModule,
+    PollsModule,
     NewsModule,
   ],
   controllers: [AppController],
