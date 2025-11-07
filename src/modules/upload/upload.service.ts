@@ -5,16 +5,35 @@ import * as path from 'path';
 
 @Injectable()
 export class UploadService {
-  private readonly uploadPath: string;
+  private uploadPath: string;
   private readonly maxFileSize: number;
 
   constructor(private configService: ConfigService) {
-    this.uploadPath = this.configService.get<string>('app.upload.uploadPath') || 'uploads/';
+    // Em produção, usar /tmp que tem permissões de escrita
+    const defaultPath = process.env.NODE_ENV === 'production' ? '/tmp/uploads/' : 'uploads/';
+    this.uploadPath = this.configService.get<string>('app.upload.uploadPath') || defaultPath;
     this.maxFileSize = this.configService.get<number>('app.upload.maxFileSize') || 5242880; // 5MB
 
-    // Criar diretório de upload se não existir
-    if (!fs.existsSync(this.uploadPath)) {
-      fs.mkdirSync(this.uploadPath, { recursive: true });
+    // Tentar criar diretório de upload se não existir
+    this.ensureUploadDirectory();
+  }
+
+  private ensureUploadDirectory(): void {
+    try {
+      if (!fs.existsSync(this.uploadPath)) {
+        fs.mkdirSync(this.uploadPath, { recursive: true });
+      }
+    } catch (error) {
+      console.error('⚠️ Não foi possível criar diretório de uploads:', error.message);
+      console.log('📁 Usando diretório: /tmp/uploads/');
+      this.uploadPath = '/tmp/uploads/';
+      try {
+        if (!fs.existsSync(this.uploadPath)) {
+          fs.mkdirSync(this.uploadPath, { recursive: true });
+        }
+      } catch (fallbackError) {
+        console.error('❌ Erro crítico ao criar diretório /tmp/uploads:', fallbackError);
+      }
     }
   }
 
@@ -22,6 +41,9 @@ export class UploadService {
     if (!file) {
       throw new BadRequestException('Nenhum arquivo foi enviado');
     }
+
+    // Garantir que o diretório existe antes de salvar
+    this.ensureUploadDirectory();
 
     // Validar tamanho do arquivo
     if (file.size > this.maxFileSize) {
@@ -55,12 +77,20 @@ export class UploadService {
     const fileName = `${timestamp}-${randomString}${fileExtension}`;
     const filePath = path.join(this.uploadPath, fileName);
 
-    // Salvar arquivo
-    fs.writeFileSync(filePath, file.buffer);
+    try {
+      // Salvar arquivo
+      fs.writeFileSync(filePath, file.buffer);
+    } catch (error) {
+      console.error('❌ Erro ao salvar arquivo:', error);
+      throw new BadRequestException('Erro ao salvar arquivo no servidor');
+    }
 
     // Retornar URL do arquivo
     // TODO: Em produção, usar URL do CDN ou S3
-    const baseUrl = this.configService.get<string>('app.baseUrl') || 'http://localhost:3000';
+    const baseUrl = this.configService.get<string>('app.baseUrl') || 
+                    process.env.RAILWAY_PUBLIC_DOMAIN ? 
+                    `https://${process.env.RAILWAY_PUBLIC_DOMAIN}` : 
+                    'http://localhost:3000';
     return `${baseUrl}/uploads/${fileName}`;
   }
 
