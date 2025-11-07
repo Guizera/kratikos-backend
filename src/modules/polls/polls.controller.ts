@@ -35,6 +35,27 @@ export class PollsController {
     return this.pollsService.create(createPollDto, req.user.userId);
   }
 
+  @Get('remaining')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obter número de enquetes restantes' })
+  @ApiResponse({
+    status: 200,
+    description: 'Número de enquetes restantes retornado',
+    schema: {
+      type: 'object',
+      properties: {
+        remaining: { type: 'number', example: 2 },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  async getRemainingPolls(@Request() req) {
+    // TODO: Implementar lógica de limite de enquetes por usuário/período
+    // Por enquanto, retornar valor fixo
+    return { remaining: 2 };
+  }
+
   @Get()
   @ApiOperation({ summary: 'Listar todas as enquetes' })
   @ApiQuery({ name: 'page', required: false, type: Number, description: 'Número da página', example: 1 })

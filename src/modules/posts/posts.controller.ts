@@ -52,6 +52,27 @@ export class PostsController {
     return this.postsService.create(createPostDto, req.user.userId);
   }
 
+  @Get('posts/remaining')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obter número de posts restantes' })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Número de posts restantes retornado',
+    schema: {
+      type: 'object',
+      properties: {
+        remaining: { type: 'number', example: 5 },
+      },
+    },
+  })
+  @ApiResponse({ status: 401, description: 'Não autorizado' })
+  async getRemainingPosts(@Request() req) {
+    // TODO: Implementar lógica de limite de posts por usuário/período
+    // Por enquanto, retornar valor fixo
+    return { remaining: 5 };
+  }
+
   @Get('posts')
   @ApiOperation({ summary: 'Listar todos os posts' })
   @ApiQuery({ name: 'page', required: false, type: Number })
