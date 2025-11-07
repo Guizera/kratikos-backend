@@ -36,8 +36,6 @@ export class PollsController {
   }
 
   @Get('remaining')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obter número de enquetes restantes' })
   @ApiResponse({
     status: 200,
@@ -49,10 +47,9 @@ export class PollsController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  async getRemainingPolls(@Request() req) {
+  async getRemainingPolls() {
     // TODO: Implementar lógica de limite de enquetes por usuário/período
-    // Por enquanto, retornar valor fixo
+    // Por enquanto, retornar valor fixo (sem autenticação necessária)
     return { remaining: 2 };
   }
 

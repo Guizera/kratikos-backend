@@ -29,7 +29,7 @@ let PostsController = class PostsController {
     async create(createPostDto, req) {
         return this.postsService.create(createPostDto, req.user.userId);
     }
-    async getRemainingPosts(req) {
+    async getRemainingPosts() {
         return { remaining: 5 };
     }
     async findAll(page, limit) {
@@ -86,8 +86,6 @@ __decorate([
 ], PostsController.prototype, "create", null);
 __decorate([
     (0, common_1.Get)('posts/remaining'),
-    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    (0, swagger_1.ApiBearerAuth)(),
     (0, swagger_1.ApiOperation)({ summary: 'Obter número de posts restantes' }),
     (0, swagger_1.ApiResponse)({
         status: 200,
@@ -99,10 +97,8 @@ __decorate([
             },
         },
     }),
-    (0, swagger_1.ApiResponse)({ status: 401, description: 'Não autorizado' }),
-    __param(0, (0, common_1.Request)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object]),
+    __metadata("design:paramtypes", []),
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "getRemainingPosts", null);
 __decorate([

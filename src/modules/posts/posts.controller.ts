@@ -53,8 +53,6 @@ export class PostsController {
   }
 
   @Get('posts/remaining')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth()
   @ApiOperation({ summary: 'Obter número de posts restantes' })
   @ApiResponse({ 
     status: 200, 
@@ -66,10 +64,9 @@ export class PostsController {
       },
     },
   })
-  @ApiResponse({ status: 401, description: 'Não autorizado' })
-  async getRemainingPosts(@Request() req) {
+  async getRemainingPosts() {
     // TODO: Implementar lógica de limite de posts por usuário/período
-    // Por enquanto, retornar valor fixo
+    // Por enquanto, retornar valor fixo (sem autenticação necessária)
     return { remaining: 5 };
   }
 
