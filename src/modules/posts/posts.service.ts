@@ -20,7 +20,13 @@ export class PostsService {
       authorId,
     });
     
-    return await this.postRepository.save(post);
+    const savedPost = await this.postRepository.save(post);
+    
+    // Recarregar com relações para retornar o autor
+    return await this.postRepository.findOne({
+      where: { id: savedPost.id },
+      relations: ['author', 'category', 'tags'],
+    });
   }
 
   async findAll(page: number = 1, limit: number = 10): Promise<{ data: Post[]; total: number; page: number; limit: number }> {

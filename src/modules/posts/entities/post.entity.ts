@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
@@ -18,14 +18,16 @@ export class Post {
   @ApiProperty({ description: 'ID único do post' })
   id: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
+  @JoinColumn({ name: 'author_id' })
   @ApiProperty({ description: 'Autor do post' })
   author: User;
 
   @Column({ name: 'author_id' })
   authorId: string;
 
-  @ManyToOne(() => Category, category => category.posts, { eager: true })
+  @ManyToOne(() => Category, category => category.posts)
+  @JoinColumn({ name: 'category_id' })
   @ApiProperty({ description: 'Categoria do post' })
   category: Category;
 
