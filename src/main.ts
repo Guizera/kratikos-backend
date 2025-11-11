@@ -11,10 +11,20 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
 
   // Configurar arquivos estáticos (uploads)
-  const uploadPath = configService.get<string>('app.upload.uploadPath') || 'uploads/';
-  app.useStaticAssets(join(process.cwd(), uploadPath), {
+  // Em produção (Railway), usar /tmp/uploads (não persistente!)
+  const defaultPath = process.env.NODE_ENV === 'production' ? '/tmp/uploads/' : 'uploads/';
+  const uploadPath = configService.get<string>('app.upload.uploadPath') || defaultPath;
+  
+  // Se começar com /, usar caminho absoluto (produção)
+  const fullPath = uploadPath.startsWith('/') 
+    ? uploadPath 
+    : join(process.cwd(), uploadPath);
+  
+  app.useStaticAssets(fullPath, {
     prefix: '/uploads/',
   });
+  
+  console.log(`📁 Servindo uploads de: ${fullPath}`);
 
   // Configuração do CORS
   const corsOptions = configService.get('app.cors');
