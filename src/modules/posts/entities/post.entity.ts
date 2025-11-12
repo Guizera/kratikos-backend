@@ -18,12 +18,12 @@ export class Post {
   @ApiProperty({ description: 'ID único do post' })
   id: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'author_id' })
   @ApiProperty({ description: 'Autor do post' })
   author: User;
 
-  @Column({ name: 'author_id' })
+  @Column({ name: 'author_id', nullable: true })
   authorId: string;
 
   @ManyToOne(() => Category, category => category.posts)

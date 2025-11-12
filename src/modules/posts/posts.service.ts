@@ -23,10 +23,13 @@ export class PostsService {
     const savedPost = await this.postRepository.save(post);
     
     // Recarregar com relações para retornar o autor
-    return await this.postRepository.findOne({
+    const postWithRelations = await this.postRepository.findOne({
       where: { id: savedPost.id },
       relations: ['author', 'category', 'tags'],
     });
+    
+    // Se author for null por algum motivo, retornar sem ele
+    return postWithRelations || savedPost;
   }
 
   async findAll(page: number = 1, limit: number = 10): Promise<{ data: Post[]; total: number; page: number; limit: number }> {
