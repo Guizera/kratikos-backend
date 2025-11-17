@@ -15,6 +15,7 @@ import {
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PollsService } from './polls.service';
 import { CreatePollDto } from './dto/create-poll.dto';
+import { VotePollDto } from './dto/vote-poll.dto';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @ApiTags('polls')
@@ -83,6 +84,61 @@ export class PollsController {
   async remove(@Param('id', ParseUUIDPipe) id: string) {
     await this.pollsService.remove(id);
     return { message: 'Enquete removida com sucesso' };
+  }
+
+  // ========================================================================
+  // VOTING
+  // ========================================================================
+
+  @Post(':id/vote')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Votar em uma enquete' })
+  @ApiResponse({ status: 200, description: 'Voto registrado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Enquete não encontrada' })
+  @ApiResponse({ status: 400, description: 'Enquete encerrada ou opção inválida' })
+  async vote(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() votePollDto: VotePollDto,
+    @Request() req,
+  ) {
+    await this.pollsService.vote(id, votePollDto, req.user.userId);
+    return { message: 'Voto registrado com sucesso' };
+  }
+
+  @Delete(':id/vote')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remover voto de uma enquete' })
+  @ApiResponse({ status: 200, description: 'Voto removido com sucesso' })
+  @ApiResponse({ status: 404, description: 'Voto não encontrado' })
+  async removeVote(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.pollsService.removeVote(id, req.user.userId);
+    return { message: 'Voto removido com sucesso' };
+  }
+
+  @Get(':id/vote')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Obter voto do usuário em uma enquete' })
+  @ApiResponse({ status: 200, description: 'Voto retornado com sucesso' })
+  async getUserVote(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    const vote = await this.pollsService.getUserVote(id, req.user.userId);
+    return vote || { message: 'Usuário ainda não votou' };
+  }
+
+  @Get(':id/results')
+  @ApiOperation({ summary: 'Obter resultados de uma enquete' })
+  @ApiResponse({ status: 200, description: 'Resultados retornados com sucesso' })
+  @ApiResponse({ status: 404, description: 'Enquete não encontrada' })
+  async getResults(@Param('id', ParseUUIDPipe) id: string) {
+    return this.pollsService.getPollResults(id);
   }
 }
 
