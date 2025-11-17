@@ -1,6 +1,8 @@
-import { IsNotEmpty, IsString, IsEnum, IsUUID, IsOptional, IsArray } from 'class-validator';
+import { IsNotEmpty, IsString, IsEnum, IsUUID, IsOptional, IsArray, ValidateNested, IsObject } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import { PostType } from '../entities/post.entity';
+import { PostScope, LocationDto } from './location.dto';
 
 export class CreatePostDto {
   @IsString()
@@ -51,4 +53,23 @@ export class CreatePostDto {
     example: ['mobilidade', 'transporte'] 
   })
   tags?: string[];
+
+  @IsEnum(PostScope)
+  @IsNotEmpty()
+  @ApiProperty({
+    description: 'Escopo do post',
+    enum: PostScope,
+    example: PostScope.NACIONAL,
+  })
+  scope: PostScope;
+
+  @ValidateNested()
+  @Type(() => LocationDto)
+  @IsOptional()
+  @ApiProperty({
+    description: 'Localização (obrigatória para posts regionais)',
+    type: LocationDto,
+    required: false,
+  })
+  location?: LocationDto;
 }

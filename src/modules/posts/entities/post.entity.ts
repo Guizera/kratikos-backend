@@ -1,9 +1,10 @@
 import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
-import { Category } from '../../categories/entities/category.entity';
+import { Category} from '../../categories/entities/category.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Tag } from '../../tags/entities/tag.entity';
+import { PostScope } from '../dto/location.dto';
 
 export enum PostType {
   PROPOSTA = 'proposta',
@@ -68,6 +69,38 @@ export class Post {
   @Column({ name: 'comments_count', default: 0 })
   @ApiProperty({ description: 'Número de comentários' })
   commentsCount: number;
+
+  @Column({
+    type: 'enum',
+    enum: PostScope,
+    default: PostScope.NACIONAL,
+  })
+  @ApiProperty({ description: 'Escopo do post', enum: PostScope })
+  scope: PostScope;
+
+  @Column({ name: 'location_lat', type: 'decimal', precision: 10, scale: 8, nullable: true })
+  @ApiProperty({ description: 'Latitude (para posts regionais)' })
+  locationLat: number;
+
+  @Column({ name: 'location_lng', type: 'decimal', precision: 11, scale: 8, nullable: true })
+  @ApiProperty({ description: 'Longitude (para posts regionais)' })
+  locationLng: number;
+
+  @Column({ name: 'location_range_km', nullable: true, default: 50 })
+  @ApiProperty({ description: 'Range em quilômetros (para posts regionais)' })
+  locationRangeKm: number;
+
+  @Column({ name: 'location_city', nullable: true })
+  @ApiProperty({ description: 'Cidade (para posts regionais)' })
+  locationCity: string;
+
+  @Column({ name: 'location_state', nullable: true })
+  @ApiProperty({ description: 'Estado (para posts regionais)' })
+  locationState: string;
+
+  @Column({ name: 'location_country', nullable: true, default: 'Brasil' })
+  @ApiProperty({ description: 'País' })
+  locationCountry: string;
 
   @OneToMany(() => Comment, comment => comment.post)
   comments: Comment[];
