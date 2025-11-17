@@ -12,7 +12,9 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.CreatePostDto = void 0;
 const class_validator_1 = require("class-validator");
 const swagger_1 = require("@nestjs/swagger");
+const class_transformer_1 = require("class-transformer");
 const post_entity_1 = require("../entities/post.entity");
+const location_dto_1 = require("./location.dto");
 class CreatePostDto {
 }
 exports.CreatePostDto = CreatePostDto;
@@ -71,4 +73,25 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], CreatePostDto.prototype, "tags", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(location_dto_1.PostScope),
+    (0, class_validator_1.IsNotEmpty)(),
+    (0, swagger_1.ApiProperty)({
+        description: 'Escopo do post',
+        enum: location_dto_1.PostScope,
+        example: location_dto_1.PostScope.NACIONAL,
+    }),
+    __metadata("design:type", String)
+], CreatePostDto.prototype, "scope", void 0);
+__decorate([
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => location_dto_1.LocationDto),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({
+        description: 'Localização (obrigatória para posts regionais)',
+        type: location_dto_1.LocationDto,
+        required: false,
+    }),
+    __metadata("design:type", location_dto_1.LocationDto)
+], CreatePostDto.prototype, "location", void 0);
 //# sourceMappingURL=create-post.dto.js.map

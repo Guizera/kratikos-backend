@@ -21,6 +21,7 @@ const posts_module_1 = require("./modules/posts/posts.module");
 const polls_module_1 = require("./modules/polls/polls.module");
 const news_module_1 = require("./modules/news/news.module");
 const upload_module_1 = require("./modules/upload/upload.module");
+const search_module_1 = require("./modules/search/search.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
 const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const app_config_1 = __importDefault(require("./config/app.config"));
@@ -67,6 +68,7 @@ exports.AppModule = AppModule = __decorate([
             polls_module_1.PollsModule,
             news_module_1.NewsModule,
             upload_module_1.UploadModule,
+            search_module_1.SearchModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

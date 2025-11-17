@@ -33,4 +33,34 @@ export declare class PostsController {
         data: import("./entities/post.entity").Post[];
         total: number;
     }>;
+    findInternational(page: number, limit: number): Promise<{
+        data: import("./entities/post.entity").Post[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
+    findNational(page: number, limit: number): Promise<{
+        data: import("./entities/post.entity").Post[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
+    findRegional(lat: string, lng: string, range: number, page: number, limit: number): Promise<{
+        data: any[];
+        total: number;
+        page: number;
+        limit: number;
+    }>;
+    likePost(id: string, req: any): Promise<{
+        message: string;
+    }>;
+    unlikePost(id: string, req: any): Promise<{
+        message: string;
+    }>;
+    hasLiked(id: string, req: any): Promise<{
+        hasLiked: boolean;
+    }>;
+    sharePost(id: string): Promise<{
+        message: string;
+    }>;
 }

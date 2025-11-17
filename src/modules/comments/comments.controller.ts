@@ -22,7 +22,7 @@ export class CommentsController {
   @Post()
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Criar comentário' }}
+  @ApiOperation({ summary: 'Criar comentário' })
   @ApiResponse({ status: 201, description: 'Comentário criado com sucesso' })
   @ApiResponse({ status: 404, description: 'Post não encontrado' })
   async create(
@@ -33,7 +33,7 @@ export class CommentsController {
   }
 
   @Get('post/:postId')
-  @ApiOperation({ summary: 'Listar comentários de um post' }}
+  @ApiOperation({ summary: 'Listar comentários de um post' })
   @ApiResponse({ status: 200, description: 'Lista de comentários retornada com sucesso' })
   async findByPost(@Param('postId', ParseUUIDPipe) postId: string) {
     return this.commentsService.findByPostId(postId);
@@ -42,9 +42,9 @@ export class CommentsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Deletar comentário' }}
+  @ApiOperation({ summary: 'Deletar comentário' })
   @ApiResponse({ status: 200, description: 'Comentário deletado com sucesso' })
-  @ApiResponse({ status: 404, description: 'Comentário não encontrado' }}
+  @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
   async delete(
     @Param('id', ParseUUIDPipe) id: string,
     @Request() req,

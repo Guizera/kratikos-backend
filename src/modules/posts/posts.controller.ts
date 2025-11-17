@@ -261,7 +261,7 @@ export class PostsController {
   @Get('posts/:id/liked')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'Verificar se usuário curtiu o post' }}
+  @ApiOperation({ summary: 'Verificar se usuário curtiu o post' })
   @ApiResponse({ status: 200, description: 'Status de curtida retornado' })
   async hasLiked(
     @Param('id', ParseUUIDPipe) id: string,
@@ -276,7 +276,7 @@ export class PostsController {
   // ========================================================================
 
   @Post('posts/:id/share')
-  @ApiOperation({ summary: 'Compartilhar um post' }}
+  @ApiOperation({ summary: 'Compartilhar um post' })
   @ApiResponse({ status: 200, description: 'Post compartilhado com sucesso' })
   @ApiResponse({ status: 404, description: 'Post não encontrado' })
   async sharePost(@Param('id', ParseUUIDPipe) id: string) {

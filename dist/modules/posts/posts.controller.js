@@ -51,6 +51,36 @@ let PostsController = class PostsController {
     async findByCategory(categoryId, page, limit) {
         return this.postsService.findByCategory(categoryId, page, limit);
     }
+    async findInternational(page, limit) {
+        return this.postsService.findInternationalPosts(page, limit);
+    }
+    async findNational(page, limit) {
+        return this.postsService.findNationalPosts(page, limit);
+    }
+    async findRegional(lat, lng, range, page, limit) {
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        if (isNaN(latitude) || isNaN(longitude)) {
+            throw new Error('Latitude e longitude devem ser números válidos');
+        }
+        return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
+    }
+    async likePost(id, req) {
+        await this.postsService.likePost(id, req.user.userId);
+        return { message: 'Post curtido com sucesso' };
+    }
+    async unlikePost(id, req) {
+        await this.postsService.unlikePost(id, req.user.userId);
+        return { message: 'Curtida removida com sucesso' };
+    }
+    async hasLiked(id, req) {
+        const hasLiked = await this.postsService.hasUserLikedPost(id, req.user.userId);
+        return { hasLiked };
+    }
+    async sharePost(id) {
+        await this.postsService.sharePost(id);
+        return { message: 'Post compartilhado com sucesso' };
+    }
 };
 exports.PostsController = PostsController;
 __decorate([
@@ -194,6 +224,110 @@ __decorate([
     __metadata("design:paramtypes", [String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "findByCategory", null);
+__decorate([
+    (0, common_1.Get)('posts/international'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts internacionais' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts internacionais retornada com sucesso',
+    }),
+    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findInternational", null);
+__decorate([
+    (0, common_1.Get)('posts/national'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts nacionais' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts nacionais retornada com sucesso',
+    }),
+    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findNational", null);
+__decorate([
+    (0, common_1.Get)('posts/regional'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts regionais por localização' }),
+    (0, swagger_1.ApiQuery)({ name: 'lat', required: true, type: Number, description: 'Latitude' }),
+    (0, swagger_1.ApiQuery)({ name: 'lng', required: true, type: Number, description: 'Longitude' }),
+    (0, swagger_1.ApiQuery)({ name: 'range', required: false, type: Number, description: 'Range em KM (padrão: 50)' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts regionais retornada com sucesso',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Latitude e longitude são obrigatórias',
+    }),
+    __param(0, (0, common_1.Query)('lat')),
+    __param(1, (0, common_1.Query)('lng')),
+    __param(2, (0, common_1.Query)('range', new common_1.DefaultValuePipe(50), common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(4, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Number, Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findRegional", null);
+__decorate([
+    (0, common_1.Post)('posts/:id/like'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Curtir um post' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Post curtido com sucesso' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Post não encontrado' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Você já curtiu este post' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "likePost", null);
+__decorate([
+    (0, common_1.Delete)('posts/:id/like'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Remover curtida de um post' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Curtida removida com sucesso' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Like não encontrado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "unlikePost", null);
+__decorate([
+    (0, common_1.Get)('posts/:id/liked'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Verificar se usuário curtiu o post' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Status de curtida retornado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "hasLiked", null);
+__decorate([
+    (0, common_1.Post)('posts/:id/share'),
+    (0, swagger_1.ApiOperation)({ summary: 'Compartilhar um post' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Post compartilhado com sucesso' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Post não encontrado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "sharePost", null);
 exports.PostsController = PostsController = __decorate([
     (0, swagger_1.ApiTags)('posts'),
     (0, common_1.Controller)(),

@@ -16,6 +16,7 @@ const user_entity_1 = require("../../users/entities/user.entity");
 const category_entity_1 = require("../../categories/entities/category.entity");
 const comment_entity_1 = require("../../comments/entities/comment.entity");
 const tag_entity_1 = require("../../tags/entities/tag.entity");
+const location_dto_1 = require("../dto/location.dto");
 var PostType;
 (function (PostType) {
     PostType["PROPOSTA"] = "proposta";
@@ -32,16 +33,18 @@ __decorate([
     __metadata("design:type", String)
 ], Post.prototype, "id", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
+    (0, typeorm_1.JoinColumn)({ name: 'author_id' }),
     (0, swagger_1.ApiProperty)({ description: 'Autor do post' }),
     __metadata("design:type", user_entity_1.User)
 ], Post.prototype, "author", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'author_id' }),
+    (0, typeorm_1.Column)({ name: 'author_id', nullable: true }),
     __metadata("design:type", String)
 ], Post.prototype, "authorId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => category_entity_1.Category, category => category.posts, { eager: true }),
+    (0, typeorm_1.ManyToOne)(() => category_entity_1.Category, category => category.posts),
+    (0, typeorm_1.JoinColumn)({ name: 'category_id' }),
     (0, swagger_1.ApiProperty)({ description: 'Categoria do post' }),
     __metadata("design:type", category_entity_1.Category)
 ], Post.prototype, "category", void 0);
@@ -92,6 +95,45 @@ __decorate([
     (0, swagger_1.ApiProperty)({ description: 'Número de comentários' }),
     __metadata("design:type", Number)
 ], Post.prototype, "commentsCount", void 0);
+__decorate([
+    (0, typeorm_1.Column)({
+        type: 'enum',
+        enum: location_dto_1.PostScope,
+        default: location_dto_1.PostScope.NACIONAL,
+    }),
+    (0, swagger_1.ApiProperty)({ description: 'Escopo do post', enum: location_dto_1.PostScope }),
+    __metadata("design:type", String)
+], Post.prototype, "scope", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_lat', type: 'decimal', precision: 10, scale: 8, nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'Latitude (para posts regionais)' }),
+    __metadata("design:type", Number)
+], Post.prototype, "locationLat", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_lng', type: 'decimal', precision: 11, scale: 8, nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'Longitude (para posts regionais)' }),
+    __metadata("design:type", Number)
+], Post.prototype, "locationLng", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_range_km', nullable: true, default: 50 }),
+    (0, swagger_1.ApiProperty)({ description: 'Range em quilômetros (para posts regionais)' }),
+    __metadata("design:type", Number)
+], Post.prototype, "locationRangeKm", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_city', nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'Cidade (para posts regionais)' }),
+    __metadata("design:type", String)
+], Post.prototype, "locationCity", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_state', nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'Estado (para posts regionais)' }),
+    __metadata("design:type", String)
+], Post.prototype, "locationState", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'location_country', nullable: true, default: 'Brasil' }),
+    (0, swagger_1.ApiProperty)({ description: 'País' }),
+    __metadata("design:type", String)
+], Post.prototype, "locationCountry", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => comment_entity_1.Comment, comment => comment.post),
     __metadata("design:type", Array)

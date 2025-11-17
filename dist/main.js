@@ -9,10 +9,15 @@ const path_1 = require("path");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_1.AppModule);
     const configService = app.get(config_1.ConfigService);
-    const uploadPath = configService.get('app.upload.uploadPath') || 'uploads/';
-    app.useStaticAssets((0, path_1.join)(process.cwd(), uploadPath), {
+    const defaultPath = process.env.NODE_ENV === 'production' ? '/tmp/uploads/' : 'uploads/';
+    const uploadPath = configService.get('app.upload.uploadPath') || defaultPath;
+    const fullPath = uploadPath.startsWith('/')
+        ? uploadPath
+        : (0, path_1.join)(process.cwd(), uploadPath);
+    app.useStaticAssets(fullPath, {
         prefix: '/uploads/',
     });
+    console.log(`📁 Servindo uploads de: ${fullPath}`);
     const corsOptions = configService.get('app.cors');
     app.enableCors(corsOptions);
     app.useGlobalPipes(new common_1.ValidationPipe({
