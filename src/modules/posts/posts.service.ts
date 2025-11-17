@@ -2,6 +2,7 @@ import { Injectable, NotFoundException, BadRequestException } from '@nestjs/comm
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
+import { PostLike } from './entities/post-like.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostScope } from './dto/location.dto';
@@ -11,6 +12,8 @@ export class PostsService {
   constructor(
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    @InjectRepository(PostLike)
+    private readonly postLikeRepository: Repository<PostLike>,
   ) {}
 
   async create(createPostDto: CreatePostDto, authorId: string): Promise<Post> {
@@ -223,6 +226,73 @@ export class PostsService {
       page,
       limit,
     };
+  }
+
+  // ========================================================================
+  // LIKES
+  // ========================================================================
+
+  async likePost(postId: string, userId: string): Promise<void> {
+    // Verificar se post existe
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+    if (!post) {
+      throw new NotFoundException('Post não encontrado');
+    }
+
+    // Verificar se já curtiu
+    const existingLike = await this.postLikeRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('Você já curtiu este post');
+    }
+
+    // Criar like
+    const like = this.postLikeRepository.create({ postId, userId });
+    await this.postLikeRepository.save(like);
+
+    // Incrementar contador
+    await this.postRepository.increment({ id: postId }, 'likesCount', 1);
+  }
+
+  async unlikePost(postId: string, userId: string): Promise<void> {
+    // Verificar se like existe
+    const like = await this.postLikeRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (!like) {
+      throw new NotFoundException('Like não encontrado');
+    }
+
+    // Remover like
+    await this.postLikeRepository.remove(like);
+
+    // Decrementar contador
+    await this.postRepository.decrement({ id: postId }, 'likesCount', 1);
+  }
+
+  async hasUserLikedPost(postId: string, userId: string): Promise<boolean> {
+    const like = await this.postLikeRepository.findOne({
+      where: { postId, userId },
+    });
+    return !!like;
+  }
+
+  // ========================================================================
+  // SHARES
+  // ========================================================================
+
+  async sharePost(postId: string): Promise<void> {
+    // Verificar se post existe
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+    if (!post) {
+      throw new NotFoundException('Post não encontrado');
+    }
+
+    // Incrementar contador de compartilhamentos
+    await this.postRepository.increment({ id: postId }, 'sharesCount', 1);
   }
 }
 

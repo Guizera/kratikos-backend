@@ -224,5 +224,64 @@ export class PostsController {
     
     return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
   }
+
+  // ========================================================================
+  // LIKES
+  // ========================================================================
+
+  @Post('posts/:id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Curtir um post' })
+  @ApiResponse({ status: 200, description: 'Post curtido com sucesso' })
+  @ApiResponse({ status: 404, description: 'Post não encontrado' })
+  @ApiResponse({ status: 400, description: 'Você já curtiu este post' })
+  async likePost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.postsService.likePost(id, req.user.userId);
+    return { message: 'Post curtido com sucesso' };
+  }
+
+  @Delete('posts/:id/like')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Remover curtida de um post' })
+  @ApiResponse({ status: 200, description: 'Curtida removida com sucesso' })
+  @ApiResponse({ status: 404, description: 'Like não encontrado' })
+  async unlikePost(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    await this.postsService.unlikePost(id, req.user.userId);
+    return { message: 'Curtida removida com sucesso' };
+  }
+
+  @Get('posts/:id/liked')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verificar se usuário curtiu o post' }}
+  @ApiResponse({ status: 200, description: 'Status de curtida retornado' })
+  async hasLiked(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Request() req,
+  ) {
+    const hasLiked = await this.postsService.hasUserLikedPost(id, req.user.userId);
+    return { hasLiked };
+  }
+
+  // ========================================================================
+  // SHARES
+  // ========================================================================
+
+  @Post('posts/:id/share')
+  @ApiOperation({ summary: 'Compartilhar um post' }}
+  @ApiResponse({ status: 200, description: 'Post compartilhado com sucesso' })
+  @ApiResponse({ status: 404, description: 'Post não encontrado' })
+  async sharePost(@Param('id', ParseUUIDPipe) id: string) {
+    await this.postsService.sharePost(id);
+    return { message: 'Post compartilhado com sucesso' };
+  }
 }
 
