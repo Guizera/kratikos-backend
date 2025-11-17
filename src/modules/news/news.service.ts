@@ -1,6 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { NewsArticle } from './entities/news-article.entity';
+import { NewsArticle, NewsScope } from './entities/news-article.entity';
 
 @Injectable()
 export class NewsService {
@@ -240,8 +240,9 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(),
         category: item.category,
         tags: item.tags || [],
-        isInternational,
-        region: region || undefined,
+        scope: isInternational ? NewsScope.INTERNACIONAL : NewsScope.NACIONAL,
+        locationCity: region || undefined,
+        locationCountry: isInternational ? undefined : 'Brasil',
       }));
     } catch (error) {
       this.logger.error(`Erro ao chamar OpenAI API: ${error.message}`);
@@ -290,8 +291,9 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(article.publishedAt || Date.now()),
         category: categories[0],
         tags: this.extractTags(article.title + ' ' + article.description),
-        isInternational,
-        region: region || (isInternational ? 'Internacional' : 'Brasil'),
+        scope: isInternational ? NewsScope.INTERNACIONAL : NewsScope.NACIONAL,
+        locationCity: region || undefined,
+        locationCountry: isInternational ? undefined : 'Brasil',
       }));
     } catch (error) {
       this.logger.error(`Erro ao buscar notícias reais: ${error.message}`);
@@ -342,7 +344,7 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
         category: 'environment',
         tags: ['clima', 'meio ambiente', 'política'],
-        isInternational: true,
+        scope: NewsScope.INTERNACIONAL,
       },
       {
         id: '2',
@@ -357,7 +359,7 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
         category: 'technology',
         tags: ['ia', 'medicina', 'tecnologia'],
-        isInternational: true,
+        scope: NewsScope.INTERNACIONAL,
       },
       {
         id: '3',
@@ -372,7 +374,7 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 8 * 60 * 60 * 1000),
         category: 'economy',
         tags: ['economia', 'finanças', 'bolsa'],
-        isInternational: true,
+        scope: NewsScope.INTERNACIONAL,
       },
     ].slice(0, limit);
   }
@@ -397,8 +399,9 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 1 * 60 * 60 * 1000),
         category: 'politics',
         tags: ['infraestrutura', 'governo', 'economia'],
-        isInternational: false,
-        region: region || 'Brasil',
+        scope: NewsScope.NACIONAL,
+        locationCity: region || undefined,
+        locationCountry: 'Brasil',
       },
       {
         id: '5',
@@ -412,8 +415,9 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
         category: 'sports',
         tags: ['futebol', 'seleção', 'esporte'],
-        isInternational: false,
-        region: region || 'Brasil',
+        scope: NewsScope.NACIONAL,
+        locationCity: region || undefined,
+        locationCountry: 'Brasil',
       },
       {
         id: '6',
@@ -428,8 +432,9 @@ Ano: ${new Date().getFullYear()}`,
         publishedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
         category: 'technology',
         tags: ['startup', 'tecnologia', 'investimento'],
-        isInternational: false,
-        region: region || 'Brasil',
+        scope: NewsScope.NACIONAL,
+        locationCity: region || undefined,
+        locationCountry: 'Brasil',
       },
     ].slice(0, limit);
   }
