@@ -17,9 +17,9 @@ export class NewsSyncService {
     private readonly newsRepository: Repository<NewsArticle>,
     private readonly configService: ConfigService,
   ) {
-    this.newsApiKey = this.configService.get<string>('NEWS_API_KEY') || '';
+    this.newsApiKey = this.configService.get<string>('NEWSAPI_API_KEY') || '';
     if (!this.newsApiKey) {
-      this.logger.warn('⚠️ NEWS_API_KEY não configurada! Sincronização de notícias desabilitada.');
+      this.logger.warn('⚠️ NEWSAPI_API_KEY não configurada! Sincronização de notícias desabilitada.');
     }
   }
 
@@ -290,7 +290,7 @@ export class NewsSyncService {
       newsInDatabase: newsCount,
       cronJobsEnabled: hasApiKey,
       message: !hasApiKey 
-        ? '⚠️ NEWS_API_KEY não configurada! Adicione nas variáveis de ambiente do Railway.'
+        ? '⚠️ NEWSAPI_API_KEY não configurada! Adicione nas variáveis de ambiente do Railway.'
         : apiStatus === 'working'
         ? '✅ NewsAPI funcionando corretamente!'
         : `❌ Erro na NewsAPI: ${apiError}`,
