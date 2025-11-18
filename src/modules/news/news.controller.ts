@@ -174,6 +174,13 @@ export class NewsController {
   // SINCRONIZAÇÃO MANUAL (para desenvolvimento/testes)
   // ========================================================================
 
+  @Get('sync/health')
+  @ApiOperation({ summary: 'Verificar configuração da sincronização de notícias' })
+  @ApiResponse({ status: 200, description: 'Status da configuração' })
+  async checkSyncHealth() {
+    return this.newsSyncService.getHealthStatus();
+  }
+
   @Post('sync/force')
   @ApiOperation({ summary: 'Forçar sincronização de notícias (desenvolvimento)' })
   @ApiResponse({ status: 200, description: 'Sincronização iniciada' })

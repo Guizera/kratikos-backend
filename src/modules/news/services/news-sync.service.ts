@@ -240,5 +240,61 @@ export class NewsSyncService {
     ]);
     this.logger.log('✅ Sincronização completa finalizada!');
   }
+
+  /**
+   * Verifica o status da configuração
+   */
+  async getHealthStatus() {
+    const hasApiKey = !!this.newsApiKey;
+    const newsCount = await this.newsRepository.count();
+    
+    let apiStatus = 'not_configured';
+    let apiError = null;
+    
+    if (hasApiKey) {
+      try {
+        // Testar uma chamada simples à API
+        const response = await axios.get(`${this.newsApiBaseUrl}/top-headlines`, {
+          params: {
+            country: 'us',
+            pageSize: 1,
+            apiKey: this.newsApiKey,
+          },
+          timeout: 5000,
+        });
+        
+        if (response.data.status === 'ok') {
+          apiStatus = 'working';
+        } else {
+          apiStatus = 'error';
+          apiError = response.data.message || 'Unknown error';
+        }
+      } catch (error) {
+        apiStatus = 'error';
+        if (error.response?.status === 401) {
+          apiError = 'API Key inválida';
+        } else if (error.response?.status === 429) {
+          apiError = 'Limite de requisições excedido';
+        } else if (error.code === 'ECONNABORTED') {
+          apiError = 'Timeout ao conectar à NewsAPI';
+        } else {
+          apiError = error.message;
+        }
+      }
+    }
+    
+    return {
+      newsApiConfigured: hasApiKey,
+      newsApiStatus: apiStatus,
+      newsApiError: apiError,
+      newsInDatabase: newsCount,
+      cronJobsEnabled: hasApiKey,
+      message: !hasApiKey 
+        ? '⚠️ NEWS_API_KEY não configurada! Adicione nas variáveis de ambiente do Railway.'
+        : apiStatus === 'working'
+        ? '✅ NewsAPI funcionando corretamente!'
+        : `❌ Erro na NewsAPI: ${apiError}`,
+    };
+  }
 }
 
