@@ -125,7 +125,7 @@ export class PostsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['author', 'category', 'tags'],
+      relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
     });
 
     return {
@@ -143,7 +143,7 @@ export class PostsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['author', 'category', 'tags'],
+      relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
     });
 
     return {
@@ -166,24 +166,27 @@ export class PostsService {
     
     // Fórmula Haversine para calcular distância
     // 6371 = raio da Terra em km
+    // Usando subquery para poder filtrar pela distância calculada
     const query = `
-      SELECT 
-        p.*,
-        u.name as "authorName",
-        u.email as "authorEmail",
-        u.photo_url as "authorPhotoUrl",
-        (6371 * acos(
-          cos(radians($1)) * cos(radians(p.location_lat)) *
-          cos(radians(p.location_lng) - radians($2)) +
-          sin(radians($1)) * sin(radians(p.location_lat))
-        )) AS distance
-      FROM posts p
-      LEFT JOIN users u ON p.author_id = u.id
-      WHERE p.scope = 'regional'
-        AND p.location_lat IS NOT NULL
-        AND p.location_lng IS NOT NULL
-      HAVING distance <= $3
-      ORDER BY p.created_at DESC
+      SELECT * FROM (
+        SELECT 
+          p.*,
+          u.name as "authorName",
+          u.email as "authorEmail",
+          u.photo_url as "authorPhotoUrl",
+          (6371 * acos(
+            cos(radians($1)) * cos(radians(p.location_lat)) *
+            cos(radians(p.location_lng) - radians($2)) +
+            sin(radians($1)) * sin(radians(p.location_lat))
+          )) AS distance
+        FROM posts p
+        LEFT JOIN users u ON p.author_id = u.id
+        WHERE p.scope = 'regional'
+          AND p.location_lat IS NOT NULL
+          AND p.location_lng IS NOT NULL
+      ) AS posts_with_distance
+      WHERE distance <= $3
+      ORDER BY created_at DESC
       LIMIT $4 OFFSET $5
     `;
     
