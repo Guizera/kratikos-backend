@@ -35,6 +35,20 @@ let PostsController = class PostsController {
     async findAll(page, limit) {
         return this.postsService.findAll(page, limit);
     }
+    async findInternational(page, limit) {
+        return this.postsService.findInternationalPosts(page, limit);
+    }
+    async findNational(page, limit) {
+        return this.postsService.findNationalPosts(page, limit);
+    }
+    async findRegional(lat, lng, range, page, limit) {
+        const latitude = parseFloat(lat);
+        const longitude = parseFloat(lng);
+        if (isNaN(latitude) || isNaN(longitude)) {
+            throw new Error('Latitude e longitude devem ser números válidos');
+        }
+        return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
+    }
     async findOne(id) {
         return this.postsService.findOne(id);
     }
@@ -50,20 +64,6 @@ let PostsController = class PostsController {
     }
     async findByCategory(categoryId, page, limit) {
         return this.postsService.findByCategory(categoryId, page, limit);
-    }
-    async findInternational(page, limit) {
-        return this.postsService.findInternationalPosts(page, limit);
-    }
-    async findNational(page, limit) {
-        return this.postsService.findNationalPosts(page, limit);
-    }
-    async findRegional(lat, lng, range, page, limit) {
-        const latitude = parseFloat(lat);
-        const longitude = parseFloat(lng);
-        if (isNaN(latitude) || isNaN(longitude)) {
-            throw new Error('Latitude e longitude devem ser números válidos');
-        }
-        return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
     }
     async likePost(id, req) {
         await this.postsService.likePost(id, req.user.userId);
@@ -147,6 +147,61 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "findAll", null);
 __decorate([
+    (0, common_1.Get)('posts/international'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts internacionais' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts internacionais retornada com sucesso',
+    }),
+    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findInternational", null);
+__decorate([
+    (0, common_1.Get)('posts/national'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts nacionais' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts nacionais retornada com sucesso',
+    }),
+    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findNational", null);
+__decorate([
+    (0, common_1.Get)('posts/regional'),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts regionais por localização' }),
+    (0, swagger_1.ApiQuery)({ name: 'lat', required: true, type: Number, description: 'Latitude' }),
+    (0, swagger_1.ApiQuery)({ name: 'lng', required: true, type: Number, description: 'Longitude' }),
+    (0, swagger_1.ApiQuery)({ name: 'range', required: false, type: Number, description: 'Range em KM (padrão: 50)' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Lista de posts regionais retornada com sucesso',
+    }),
+    (0, swagger_1.ApiResponse)({
+        status: 400,
+        description: 'Latitude e longitude são obrigatórias',
+    }),
+    __param(0, (0, common_1.Query)('lat')),
+    __param(1, (0, common_1.Query)('lng')),
+    __param(2, (0, common_1.Query)('range', new common_1.DefaultValuePipe(50), common_1.ParseIntPipe)),
+    __param(3, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(4, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, String, Number, Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "findRegional", null);
+__decorate([
     (0, common_1.Get)('posts/:id'),
     (0, swagger_1.ApiOperation)({ summary: 'Buscar post por ID' }),
     (0, swagger_1.ApiResponse)({
@@ -224,61 +279,6 @@ __decorate([
     __metadata("design:paramtypes", [String, Number, Number]),
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "findByCategory", null);
-__decorate([
-    (0, common_1.Get)('posts/international'),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar posts internacionais' }),
-    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
-    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Lista de posts internacionais retornada com sucesso',
-    }),
-    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
-    __metadata("design:returntype", Promise)
-], PostsController.prototype, "findInternational", null);
-__decorate([
-    (0, common_1.Get)('posts/national'),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar posts nacionais' }),
-    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
-    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Lista de posts nacionais retornada com sucesso',
-    }),
-    __param(0, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
-    __param(1, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Number, Number]),
-    __metadata("design:returntype", Promise)
-], PostsController.prototype, "findNational", null);
-__decorate([
-    (0, common_1.Get)('posts/regional'),
-    (0, swagger_1.ApiOperation)({ summary: 'Listar posts regionais por localização' }),
-    (0, swagger_1.ApiQuery)({ name: 'lat', required: true, type: Number, description: 'Latitude' }),
-    (0, swagger_1.ApiQuery)({ name: 'lng', required: true, type: Number, description: 'Longitude' }),
-    (0, swagger_1.ApiQuery)({ name: 'range', required: false, type: Number, description: 'Range em KM (padrão: 50)' }),
-    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
-    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
-    (0, swagger_1.ApiResponse)({
-        status: 200,
-        description: 'Lista de posts regionais retornada com sucesso',
-    }),
-    (0, swagger_1.ApiResponse)({
-        status: 400,
-        description: 'Latitude e longitude são obrigatórias',
-    }),
-    __param(0, (0, common_1.Query)('lat')),
-    __param(1, (0, common_1.Query)('lng')),
-    __param(2, (0, common_1.Query)('range', new common_1.DefaultValuePipe(50), common_1.ParseIntPipe)),
-    __param(3, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
-    __param(4, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
-    __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, String, Number, Number, Number]),
-    __metadata("design:returntype", Promise)
-], PostsController.prototype, "findRegional", null);
 __decorate([
     (0, common_1.Post)('posts/:id/like'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),

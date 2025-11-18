@@ -20,19 +20,6 @@ export declare class PostsController {
         page: number;
         limit: number;
     }>;
-    findOne(id: string): Promise<import("./entities/post.entity").Post>;
-    update(id: string, updatePostDto: UpdatePostDto): Promise<import("./entities/post.entity").Post>;
-    remove(id: string): Promise<{
-        message: string;
-    }>;
-    findByAuthor(authorId: string, page: number, limit: number): Promise<{
-        data: import("./entities/post.entity").Post[];
-        total: number;
-    }>;
-    findByCategory(categoryId: string, page: number, limit: number): Promise<{
-        data: import("./entities/post.entity").Post[];
-        total: number;
-    }>;
     findInternational(page: number, limit: number): Promise<{
         data: import("./entities/post.entity").Post[];
         total: number;
@@ -50,6 +37,19 @@ export declare class PostsController {
         total: number;
         page: number;
         limit: number;
+    }>;
+    findOne(id: string): Promise<import("./entities/post.entity").Post>;
+    update(id: string, updatePostDto: UpdatePostDto): Promise<import("./entities/post.entity").Post>;
+    remove(id: string): Promise<{
+        message: string;
+    }>;
+    findByAuthor(authorId: string, page: number, limit: number): Promise<{
+        data: import("./entities/post.entity").Post[];
+        total: number;
+    }>;
+    findByCategory(categoryId: string, page: number, limit: number): Promise<{
+        data: import("./entities/post.entity").Post[];
+        total: number;
     }>;
     likePost(id: string, req: any): Promise<{
         message: string;

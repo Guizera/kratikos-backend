@@ -85,6 +85,76 @@ export class PostsController {
     return this.postsService.findAll(page, limit);
   }
 
+  // ========================================================================
+  // ENDPOINTS POR SCOPE (devem vir ANTES de /posts/:id)
+  // ========================================================================
+
+  @Get('posts/international')
+  @ApiOperation({ summary: 'Listar posts internacionais' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de posts internacionais retornada com sucesso',
+  })
+  async findInternational(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.postsService.findInternationalPosts(page, limit);
+  }
+
+  @Get('posts/national')
+  @ApiOperation({ summary: 'Listar posts nacionais' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de posts nacionais retornada com sucesso',
+  })
+  async findNational(
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.postsService.findNationalPosts(page, limit);
+  }
+
+  @Get('posts/regional')
+  @ApiOperation({ summary: 'Listar posts regionais por localização' })
+  @ApiQuery({ name: 'lat', required: true, type: Number, description: 'Latitude' })
+  @ApiQuery({ name: 'lng', required: true, type: Number, description: 'Longitude' })
+  @ApiQuery({ name: 'range', required: false, type: Number, description: 'Range em KM (padrão: 50)' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Lista de posts regionais retornada com sucesso',
+  })
+  @ApiResponse({ 
+    status: 400, 
+    description: 'Latitude e longitude são obrigatórias',
+  })
+  async findRegional(
+    @Query('lat') lat: string,
+    @Query('lng') lng: string,
+    @Query('range', new DefaultValuePipe(50), ParseIntPipe) range: number,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const latitude = parseFloat(lat);
+    const longitude = parseFloat(lng);
+    
+    if (isNaN(latitude) || isNaN(longitude)) {
+      throw new Error('Latitude e longitude devem ser números válidos');
+    }
+    
+    return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
+  }
+
+  // ========================================================================
+  // ROTAS COM PARÂMETROS DINÂMICOS (devem vir DEPOIS das rotas específicas)
+  // ========================================================================
+
   @Get('posts/:id')
   @ApiOperation({ summary: 'Buscar post por ID' })
   @ApiResponse({ 
@@ -158,71 +228,6 @@ export class PostsController {
     @Query('limit', new DefaultValuePipe(10), ParseIntPipe) limit: number,
   ) {
     return this.postsService.findByCategory(categoryId, page, limit);
-  }
-
-  // NOVO: Endpoint para posts internacionais
-  @Get('posts/international')
-  @ApiOperation({ summary: 'Listar posts internacionais' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Lista de posts internacionais retornada com sucesso',
-  })
-  async findInternational(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-  ) {
-    return this.postsService.findInternationalPosts(page, limit);
-  }
-
-  // NOVO: Endpoint para posts nacionais
-  @Get('posts/national')
-  @ApiOperation({ summary: 'Listar posts nacionais' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Lista de posts nacionais retornada com sucesso',
-  })
-  async findNational(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-  ) {
-    return this.postsService.findNationalPosts(page, limit);
-  }
-
-  // NOVO: Endpoint para posts regionais
-  @Get('posts/regional')
-  @ApiOperation({ summary: 'Listar posts regionais por localização' })
-  @ApiQuery({ name: 'lat', required: true, type: Number, description: 'Latitude' })
-  @ApiQuery({ name: 'lng', required: true, type: Number, description: 'Longitude' })
-  @ApiQuery({ name: 'range', required: false, type: Number, description: 'Range em KM (padrão: 50)' })
-  @ApiQuery({ name: 'page', required: false, type: Number })
-  @ApiQuery({ name: 'limit', required: false, type: Number })
-  @ApiResponse({ 
-    status: 200, 
-    description: 'Lista de posts regionais retornada com sucesso',
-  })
-  @ApiResponse({ 
-    status: 400, 
-    description: 'Latitude e longitude são obrigatórias',
-  })
-  async findRegional(
-    @Query('lat') lat: string,
-    @Query('lng') lng: string,
-    @Query('range', new DefaultValuePipe(50), ParseIntPipe) range: number,
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-  ) {
-    const latitude = parseFloat(lat);
-    const longitude = parseFloat(lng);
-    
-    if (isNaN(latitude) || isNaN(longitude)) {
-      throw new Error('Latitude e longitude devem ser números válidos');
-    }
-    
-    return this.postsService.findRegionalPosts(latitude, longitude, range, page, limit);
   }
 
   // ========================================================================
