@@ -32,7 +32,7 @@ export class NewsService {
     const query = this.newsRepository
       .createQueryBuilder('news')
       .where('news.scope = :scope', { scope: NewsScope.INTERNACIONAL })
-      .andWhere('news.is_active = true');
+      .andWhere('news.isActive = :isActive', { isActive: true });
 
     if (category) {
       query.andWhere('news.category = :category', { category });
@@ -57,7 +57,7 @@ export class NewsService {
     const query = this.newsRepository
       .createQueryBuilder('news')
       .where('news.scope = :scope', { scope: NewsScope.NACIONAL })
-      .andWhere('news.is_active = true');
+      .andWhere('news.isActive = :isActive', { isActive: true });
 
     if (category) {
       query.andWhere('news.category = :category', { category });
@@ -194,8 +194,8 @@ export class NewsService {
         "to_tsvector('portuguese', news.title || ' ' || COALESCE(news.description, '') || ' ' || COALESCE(news.content, '')) @@ plainto_tsquery('portuguese', :query)",
         { query },
       )
-      .andWhere('news.is_active = true')
-      .orderBy('news.published_at', 'DESC')
+      .andWhere('news.isActive = :isActive', { isActive: true })
+      .orderBy('news.publishedAt', 'DESC')
       .limit(limit)
       .getMany();
   }
