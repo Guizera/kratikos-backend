@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery, ApiBearerAuth } from '@nestjs/swagger';
 import { NewsService } from './news.service';
+import { NewsSyncService } from './services/news-sync.service';
 import { ShareNewsDto } from './dto/share-news.dto';
 import { NewsScope } from './entities/news-article.entity';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
@@ -21,7 +22,10 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 @ApiTags('news')
 @Controller('news')
 export class NewsController {
-  constructor(private readonly newsService: NewsService) {}
+  constructor(
+    private readonly newsService: NewsService,
+    private readonly newsSyncService: NewsSyncService,
+  ) {}
 
   // ========================================================================
   // ENDPOINTS POR SCOPE
@@ -164,6 +168,25 @@ export class NewsController {
     const userId = req.user?.userId || null;
     await this.newsService.shareNews(id, userId, shareDto.platform);
     return { message: 'Notícia compartilhada com sucesso' };
+  }
+
+  // ========================================================================
+  // SINCRONIZAÇÃO MANUAL (para desenvolvimento/testes)
+  // ========================================================================
+
+  @Post('sync/force')
+  @ApiOperation({ summary: 'Forçar sincronização de notícias (desenvolvimento)' })
+  @ApiResponse({ status: 200, description: 'Sincronização iniciada' })
+  async forceSyncNews() {
+    // Executar sincronização em background
+    this.newsSyncService.forceSyncAll().catch(err => {
+      console.error('Erro na sincronização forçada:', err);
+    });
+    
+    return { 
+      message: 'Sincronização iniciada! As notícias serão carregadas em alguns segundos.',
+      tip: 'Use GET /news/stats/summary para ver o progresso'
+    };
   }
 
   // ========================================================================
