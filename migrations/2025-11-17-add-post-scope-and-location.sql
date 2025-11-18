@@ -42,7 +42,15 @@ ALTER TABLE posts
 ADD COLUMN IF NOT EXISTS location_country VARCHAR(50) DEFAULT 'Brasil';
 
 -- =============================================================================
--- PARTE 3: Criar índices para performance
+-- PARTE 3: Adicionar coluna shares_count
+-- =============================================================================
+
+-- Adicionar contador de compartilhamentos
+ALTER TABLE posts 
+ADD COLUMN IF NOT EXISTS shares_count INT DEFAULT 0;
+
+-- =============================================================================
+-- PARTE 4: Criar índices para performance
 -- =============================================================================
 
 -- Índice para filtrar por scope

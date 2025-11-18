@@ -16,6 +16,7 @@ const user_entity_1 = require("../../users/entities/user.entity");
 const category_entity_1 = require("../../categories/entities/category.entity");
 const comment_entity_1 = require("../../comments/entities/comment.entity");
 const tag_entity_1 = require("../../tags/entities/tag.entity");
+const poll_entity_1 = require("../../polls/entities/poll.entity");
 const location_dto_1 = require("../dto/location.dto");
 var PostType;
 (function (PostType) {
@@ -96,6 +97,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "commentsCount", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'shares_count', default: 0 }),
+    (0, swagger_1.ApiProperty)({ description: 'Número de compartilhamentos' }),
+    __metadata("design:type", Number)
+], Post.prototype, "sharesCount", void 0);
+__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: location_dto_1.PostScope,
@@ -148,6 +154,11 @@ __decorate([
     (0, swagger_1.ApiProperty)({ description: 'Tags do post' }),
     __metadata("design:type", Array)
 ], Post.prototype, "tags", void 0);
+__decorate([
+    (0, typeorm_1.OneToOne)(() => poll_entity_1.Poll, poll => poll.post, { nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'Enquete relacionada (se o post for tipo enquete)' }),
+    __metadata("design:type", poll_entity_1.Poll)
+], Post.prototype, "poll", void 0);
 __decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     (0, swagger_1.ApiProperty)({ description: 'Data de criação' }),

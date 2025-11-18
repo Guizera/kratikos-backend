@@ -1,9 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, OneToMany, OneToOne, ManyToMany, JoinTable, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Category} from '../../categories/entities/category.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Tag } from '../../tags/entities/tag.entity';
+import { Poll } from '../../polls/entities/poll.entity';
 import { PostScope } from '../dto/location.dto';
 
 export enum PostType {
@@ -70,6 +71,10 @@ export class Post {
   @ApiProperty({ description: 'Número de comentários' })
   commentsCount: number;
 
+  @Column({ name: 'shares_count', default: 0 })
+  @ApiProperty({ description: 'Número de compartilhamentos' })
+  sharesCount: number;
+
   @Column({
     type: 'enum',
     enum: PostScope,
@@ -113,6 +118,10 @@ export class Post {
   })
   @ApiProperty({ description: 'Tags do post' })
   tags: Tag[];
+
+  @OneToOne(() => Poll, poll => poll.post, { nullable: true })
+  @ApiProperty({ description: 'Enquete relacionada (se o post for tipo enquete)' })
+  poll: Poll | null;
 
   @CreateDateColumn({ name: 'created_at' })
   @ApiProperty({ description: 'Data de criação' })

@@ -2,6 +2,7 @@ import { User } from '../../users/entities/user.entity';
 import { Category } from '../../categories/entities/category.entity';
 import { Comment } from '../../comments/entities/comment.entity';
 import { Tag } from '../../tags/entities/tag.entity';
+import { Poll } from '../../polls/entities/poll.entity';
 import { PostScope } from '../dto/location.dto';
 export declare enum PostType {
     PROPOSTA = "proposta",
@@ -23,6 +24,7 @@ export declare class Post {
     viewsCount: number;
     likesCount: number;
     commentsCount: number;
+    sharesCount: number;
     scope: PostScope;
     locationLat: number;
     locationLng: number;
@@ -32,6 +34,7 @@ export declare class Post {
     locationCountry: string;
     comments: Comment[];
     tags: Tag[];
+    poll: Poll | null;
     createdAt: Date;
     updatedAt: Date;
 }
