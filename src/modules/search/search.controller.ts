@@ -143,5 +143,28 @@ export class SearchController {
     const posts = await this.searchService.getTrendingPosts(limit);
     return { posts, total: posts.length };
   }
+
+  @Get('news')
+  @ApiOperation({ summary: 'Buscar notícias' })
+  @ApiQuery({ name: 'q', required: true, type: String, description: 'Termo de busca' })
+  @ApiQuery({ name: 'limit', required: false, type: Number, description: 'Limite de resultados', example: 20 })
+  @ApiResponse({
+    status: 200,
+    description: 'Notícias encontradas',
+    schema: {
+      type: 'object',
+      properties: {
+        news: { type: 'array' },
+        total: { type: 'number' },
+      },
+    },
+  })
+  async searchNews(
+    @Query('q') query: string,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const news = await this.searchService.searchNews(query, limit);
+    return { news, total: news.length };
+  }
 }
 

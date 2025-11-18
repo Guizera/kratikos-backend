@@ -4,6 +4,7 @@ import { Repository, ILike } from 'typeorm';
 import { User } from '../users/entities/user.entity';
 import { Post } from '../posts/entities/post.entity';
 import { Poll } from '../polls/entities/poll.entity';
+import { NewsArticle } from '../news/entities/news-article.entity';
 
 @Injectable()
 export class SearchService {
@@ -14,6 +15,8 @@ export class SearchService {
     private postRepository: Repository<Post>,
     @InjectRepository(Poll)
     private pollRepository: Repository<Poll>,
+    @InjectRepository(NewsArticle)
+    private newsRepository: Repository<NewsArticle>,
   ) {}
 
   /**
@@ -110,20 +113,22 @@ export class SearchService {
   }
 
   /**
-   * Buscar em tudo (usuários, posts e enquetes)
+   * Buscar em tudo (usuários, posts, enquetes e notícias)
    */
   async searchAll(query: string, limit: number = 10) {
-    const [users, posts, polls] = await Promise.all([
+    const [users, posts, polls, news] = await Promise.all([
       this.searchUsers(query, limit),
       this.searchPosts(query, limit),
       this.searchPolls(query, limit),
+      this.searchNews(query, limit),
     ]);
 
     return {
       users,
       posts,
       polls,
-      total: users.length + posts.length + polls.length,
+      news,
+      total: users.length + posts.length + polls.length + news.length,
     };
   }
 
@@ -175,6 +180,38 @@ export class SearchService {
       commentsCount: post.commentsCount,
       viewsCount: post.viewsCount,
       createdAt: post.createdAt,
+    }));
+  }
+
+  /**
+   * Buscar notícias por título ou descrição
+   */
+  async searchNews(query: string, limit: number = 20) {
+    const news = await this.newsRepository.find({
+      where: [
+        { title: ILike(`%${query}%`), isActive: true },
+        { description: ILike(`%${query}%`), isActive: true },
+      ],
+      take: limit,
+      order: { publishedAt: 'DESC' },
+    });
+
+    return news.map(article => ({
+      id: article.id,
+      title: article.title,
+      description: article.description,
+      content: article.content,
+      imageUrl: article.imageUrl,
+      source: article.sourceName,
+      sourceUrl: article.sourceUrl,
+      author: article.author,
+      category: article.category,
+      tags: article.tags,
+      scope: article.scope,
+      publishedAt: article.publishedAt,
+      likesCount: article.likesCount,
+      sharesCount: article.sharesCount,
+      viewsCount: article.viewsCount,
     }));
   }
 }

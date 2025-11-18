@@ -13,6 +13,7 @@ exports.AppModule = void 0;
 const common_1 = require("@nestjs/common");
 const config_1 = require("@nestjs/config");
 const typeorm_1 = require("@nestjs/typeorm");
+const schedule_1 = require("@nestjs/schedule");
 const app_controller_1 = require("./app.controller");
 const app_service_1 = require("./app.service");
 const users_module_1 = require("./modules/users/users.module");
@@ -37,6 +38,7 @@ exports.AppModule = AppModule = __decorate([
                 isGlobal: true,
                 load: [database_config_1.default, jwt_config_1.default, app_config_1.default, openai_config_1.default, newsapi_config_1.default],
             }),
+            schedule_1.ScheduleModule.forRoot(),
             typeorm_1.TypeOrmModule.forRootAsync({
                 imports: [config_1.ConfigModule],
                 useFactory: (configService) => {

@@ -5,9 +5,10 @@ import { SearchService } from './search.service';
 import { User } from '../users/entities/user.entity';
 import { Post } from '../posts/entities/post.entity';
 import { Poll } from '../polls/entities/poll.entity';
+import { NewsArticle } from '../news/entities/news-article.entity';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Post, Poll])],
+  imports: [TypeOrmModule.forFeature([User, Post, Poll, NewsArticle])],
   controllers: [SearchController],
   providers: [SearchService],
   exports: [SearchService],

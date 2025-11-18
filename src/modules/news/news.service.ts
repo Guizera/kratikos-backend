@@ -1,442 +1,303 @@
-import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
+import { Injectable, Logger, NotFoundException, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { NewsArticle, NewsScope } from './entities/news-article.entity';
+import { NewsLike } from './entities/news-like.entity';
+import { NewsShare } from './entities/news-share.entity';
 
 @Injectable()
 export class NewsService {
   private readonly logger = new Logger(NewsService.name);
-  private readonly openaiApiKey: string;
-  private readonly openaiModel: string;
-  private readonly newsApiKey: string;
-  private readonly useRealNews: boolean;
 
-  constructor(private configService: ConfigService) {
-    this.openaiApiKey = this.configService.get<string>('openai.apiKey') || '';
-    this.openaiModel = this.configService.get<string>('openai.model') || 'gpt-3.5-turbo';
-    this.newsApiKey = this.configService.get<string>('newsapi.apiKey') || '';
-    this.useRealNews = !!this.newsApiKey; // Se tiver chave, usa notícias reais
-    
-    this.logger.log(`========= CONFIGURAÇÃO DE NOTÍCIAS =========`);
-    this.logger.log(`OpenAI API Key: ${this.openaiApiKey ? '✅ SIM' : '❌ NÃO'}`);
-    this.logger.log(`Modelo OpenAI: ${this.openaiModel}`);
-    this.logger.log(`NewsAPI Key: ${this.newsApiKey ? '✅ SIM' : '❌ NÃO'}`);
-    this.logger.log(`Modo: ${this.useRealNews ? '🌐 NOTÍCIAS REAIS (NewsAPI)' : '⚠️ NOTÍCIAS INVENTADAS (ChatGPT)'}`);
-    this.logger.log(`============================================`);
-  }
+  constructor(
+    @InjectRepository(NewsArticle)
+    private readonly newsRepository: Repository<NewsArticle>,
+    @InjectRepository(NewsLike)
+    private readonly newsLikeRepository: Repository<NewsLike>,
+    @InjectRepository(NewsShare)
+    private readonly newsShareRepository: Repository<NewsShare>,
+  ) {}
+
+  // ========================================================================
+  // BUSCA POR SCOPE
+  // ========================================================================
 
   async getInternationalNews(
-    categories: string[],
+    category?: string,
     page: number = 1,
     limit: number = 20,
-  ): Promise<{ articles: NewsArticle[] }> {
-    this.logger.log(
-      `Buscando notícias internacionais: categorias=${categories.join(',')}, page=${page}`,
-    );
+  ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
+    this.logger.log(`🌍 Buscando notícias internacionais: category=${category}, page=${page}`);
 
-    try {
-      // Gerar notícias usando OpenAI
-      const articles = await this.generateNewsWithOpenAI(
-        categories,
-        true,
-        null,
-        limit,
-      );
+    const query = this.newsRepository
+      .createQueryBuilder('news')
+      .where('news.scope = :scope', { scope: NewsScope.INTERNACIONAL })
+      .andWhere('news.is_active = true');
 
-      return { articles };
-    } catch (error) {
-      this.logger.error(
-        `Erro ao buscar notícias internacionais: ${error.message}`,
-      );
-      // Retorna dados mock em caso de erro
-      return { articles: this.getMockInternationalNews(categories, limit) };
+    if (category) {
+      query.andWhere('news.category = :category', { category });
     }
+
+    const [articles, total] = await query
+      .orderBy('news.published_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { articles, total, page, limit };
   }
 
   async getNationalNews(
-    categories: string[],
-    region: string | null,
+    category?: string,
     page: number = 1,
     limit: number = 20,
-  ): Promise<{ articles: NewsArticle[] }> {
-    this.logger.log(
-      `Buscando notícias nacionais: categorias=${categories.join(',')}, região=${region}, page=${page}`,
-    );
+  ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
+    this.logger.log(`🇧🇷 Buscando notícias nacionais: category=${category}, page=${page}`);
 
-    try {
-      // Gerar notícias usando OpenAI
-      const articles = await this.generateNewsWithOpenAI(
-        categories,
-        false,
-        region,
-        limit,
-      );
+    const query = this.newsRepository
+      .createQueryBuilder('news')
+      .where('news.scope = :scope', { scope: NewsScope.NACIONAL })
+      .andWhere('news.is_active = true');
 
-      return { articles };
-    } catch (error) {
-      this.logger.error(`Erro ao buscar notícias nacionais: ${error.message}`);
-      // Retorna dados mock em caso de erro
-      return { articles: this.getMockNationalNews(categories, region, limit) };
+    if (category) {
+      query.andWhere('news.category = :category', { category });
     }
+
+    const [articles, total] = await query
+      .orderBy('news.published_at', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit)
+      .getManyAndCount();
+
+    return { articles, total, page, limit };
   }
 
-  private async generateNewsWithOpenAI(
-    categories: string[],
-    isInternational: boolean,
-    region: string | null,
-    limit: number,
-  ): Promise<NewsArticle[]> {
-    // Se tiver NewsAPI, buscar notícias REAIS
-    if (this.useRealNews) {
-      this.logger.log('🌐 Buscando notícias REAIS da NewsAPI');
-      return this.fetchRealNews(categories, isInternational, region, limit);
+  async getRegionalNews(
+    lat: number,
+    lng: number,
+    rangeKm: number = 50,
+    category?: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
+    this.logger.log(`📍 Buscando notícias regionais: lat=${lat}, lng=${lng}, range=${rangeKm}km`);
+
+    const skip = (page - 1) * limit;
+
+    // Query com Haversine para calcular distância
+    let query = `
+      SELECT * FROM (
+        SELECT 
+          n.*,
+          (6371 * acos(
+            cos(radians($1)) * cos(radians(n.location_lat)) *
+            cos(radians(n.location_lng) - radians($2)) +
+            sin(radians($1)) * sin(radians(n.location_lat))
+          )) AS distance
+        FROM news_articles n
+        WHERE n.scope = 'regional'
+          AND n.is_active = true
+          AND n.location_lat IS NOT NULL
+          AND n.location_lng IS NOT NULL
+    `;
+
+    const params: any[] = [lat, lng, rangeKm];
+    let paramIndex = 4;
+
+    if (category) {
+      query += ` AND n.category = $${paramIndex}`;
+      params.push(category);
+      paramIndex++;
     }
-    
-    // Senão, gerar com ChatGPT (inventadas)
-    if (!this.openaiApiKey) {
-      this.logger.warn('Chave da OpenAI não configurada, usando dados mock');
-      return isInternational
-        ? this.getMockInternationalNews(categories, limit)
-        : this.getMockNationalNews(categories, region, limit);
+
+    query += `
+      ) AS news_with_distance
+      WHERE distance <= $3
+      ORDER BY published_at DESC
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `;
+
+    params.push(limit, skip);
+
+    const articles = await this.newsRepository.query(query, params);
+
+    // Buscar total
+    let countQuery = `
+      SELECT COUNT(*) as total
+      FROM (
+        SELECT 
+          n.*,
+          (6371 * acos(
+            cos(radians($1)) * cos(radians(n.location_lat)) *
+            cos(radians(n.location_lng) - radians($2)) +
+            sin(radians($1)) * sin(radians(n.location_lat))
+          )) AS distance
+        FROM news_articles n
+        WHERE n.scope = 'regional'
+          AND n.is_active = true
+          AND n.location_lat IS NOT NULL
+          AND n.location_lng IS NOT NULL
+    `;
+
+    const countParams: any[] = [lat, lng, rangeKm];
+    let countParamIndex = 4;
+
+    if (category) {
+      countQuery += ` AND n.category = $${countParamIndex}`;
+      countParams.push(category);
     }
-    
-    this.logger.warn('⚠️ Usando ChatGPT - notícias INVENTADAS (não reais)');
 
-    const scope = isInternational ? 'internacional' : 'nacional do Brasil';
-    const regionText = region ? ` na região ${region}` : '';
-    
-    // Limitar para no máximo 5 notícias por vez para resposta rápida
-    const newsLimit = Math.min(limit, 5);
-    
-    // Data atual para contexto
-    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD
-    const currentYear = new Date().getFullYear();
+    countQuery += `
+      ) AS subquery
+      WHERE distance <= $3
+    `;
 
-    const prompt = isInternational 
-      ? `Gere ${newsLimit} notícias INTERNACIONAIS de ${currentDate}${regionText} sobre: ${categories.join(', ')}.
+    const [{ total }] = await this.newsRepository.query(countQuery, countParams);
 
-🌍 ATENÇÃO - NOTÍCIAS INTERNACIONAIS APENAS:
-- Eventos nos EUA, Europa, Ásia, África, Oceania
-- Política mundial (presidentes/líderes estrangeiros)
-- Economia global (Wall Street, BCE, FMI)
-- Conflitos internacionais (Ucrânia, Oriente Médio)
-- Tecnologia de empresas estrangeiras (Apple, Google, Microsoft)
-- Esportes internacionais (Champions League, NBA, NFL)
-- NÃO mencione Brasil, governo brasileiro, ou eventos no Brasil
-
-Data: ${currentDate} | Ano: ${currentYear}
-
-RESPONDA APENAS JSON (sem markdown):
-[{
-  "title": "título internacional",
-  "description": "resumo 1 linha",
-  "content": "2 parágrafos sobre evento fora do Brasil",
-  "source": "CNN/BBC/Reuters/Al Jazeera",
-  "category": "${categories[0]}",
-  "tags": ["tag1","tag2","tag3"]
-}]`
-      : `Gere ${newsLimit} notícias NACIONAIS DO BRASIL de ${currentDate}${regionText} sobre: ${categories.join(', ')}.
-
-🇧🇷 ATENÇÃO - NOTÍCIAS DO BRASIL APENAS:
-- Política brasileira (Presidente, Congresso, STF)
-- Economia do Brasil (Banco Central, Ibovespa, PIB)
-- Eventos e acontecimentos dentro do Brasil
-- Estados brasileiros (SP, RJ, MG, etc.)
-- Empresas brasileiras (Petrobras, Vale, Banco do Brasil)
-- Esportes brasileiros (Brasileirão, Seleção, CBF)
-- NÃO mencione eventos internacionais fora do Brasil
-
-Data: ${currentDate} | Ano: ${currentYear}
-
-RESPONDA APENAS JSON (sem markdown):
-[{
-  "title": "título sobre o Brasil",
-  "description": "resumo 1 linha",
-  "content": "2 parágrafos sobre evento no Brasil",
-  "source": "G1/Folha/O Globo/UOL",
-  "category": "${categories[0]}",
-  "tags": ["tag1","tag2","tag3"]
-}]`;
-
-    try {
-      this.logger.log(`Chamando OpenAI API com modelo: ${this.openaiModel}`);
-      
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${this.openaiApiKey}`,
-        },
-        body: JSON.stringify({
-          model: this.openaiModel,
-          messages: [
-            {
-              role: 'system',
-              content: isInternational 
-                ? `Você é um correspondente INTERNACIONAL que cobre APENAS eventos fora do Brasil.
-REGRA ABSOLUTA: NUNCA mencione Brasil, governo brasileiro ou eventos no Brasil.
-Foque em: EUA, Europa, Ásia, África, eventos mundiais.
-Responda APENAS com JSON válido, sem markdown.
-Ano: ${new Date().getFullYear()}`
-                : `Você é um jornalista BRASILEIRO que cobre APENAS eventos dentro do Brasil.
-REGRA ABSOLUTA: NUNCA mencione eventos internacionais fora do Brasil.
-Foque em: política brasileira, economia nacional, estados brasileiros, eventos no país.
-Responda APENAS com JSON válido, sem markdown.
-Ano: ${new Date().getFullYear()}`,
-            },
-            {
-              role: 'user',
-              content: prompt,
-            },
-          ],
-          temperature: 0.7,
-          max_tokens: 1000, // Reduzido para 5 notícias rápidas
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        this.logger.error(`OpenAI API erro ${response.status}: ${JSON.stringify(errorData)}`);
-        throw new Error(`OpenAI API retornou status ${response.status}: ${JSON.stringify(errorData)}`);
-      }
-
-      const data = await response.json();
-      const content = data.choices[0]?.message?.content;
-
-      if (!content) {
-        this.logger.error('Resposta vazia da OpenAI');
-        throw new Error('Resposta vazia da OpenAI');
-      }
-
-      this.logger.log('OpenAI respondeu com sucesso, parseando JSON...');
-
-      // Parse o JSON retornado
-      let newsData;
-      try {
-        // Remover possíveis markdown tags (```json ... ```)
-        let cleanContent = content.trim();
-        if (cleanContent.startsWith('```json')) {
-          cleanContent = cleanContent.replace(/^```json\n?/, '').replace(/\n?```$/, '');
-        } else if (cleanContent.startsWith('```')) {
-          cleanContent = cleanContent.replace(/^```\n?/, '').replace(/\n?```$/, '');
-        }
-        
-        newsData = JSON.parse(cleanContent);
-        this.logger.log(`Notícias geradas com sucesso: ${newsData.length} artigos`);
-      } catch (parseError) {
-        this.logger.error(`Erro ao parsear resposta da OpenAI: ${parseError.message}`);
-        this.logger.error(`Conteúdo recebido: ${content.substring(0, 300)}...`);
-        throw new Error('Erro ao parsear resposta da OpenAI');
-      }
-
-      // Transformar em NewsArticle
-      return newsData.map((item: any, index: number) => ({
-        id: `${Date.now()}-${index}`,
-        title: item.title,
-        description: item.description,
-        content: item.content,
-        imageUrl: 'https://via.placeholder.com/800x400?text=Notícia',
-        source: item.source,
-        sourceUrl: '#',
-        publishedAt: new Date(),
-        category: item.category,
-        tags: item.tags || [],
-        scope: isInternational ? NewsScope.INTERNACIONAL : NewsScope.NACIONAL,
-        locationCity: region || undefined,
-        locationCountry: isInternational ? undefined : 'Brasil',
-      }));
-    } catch (error) {
-      this.logger.error(`Erro ao chamar OpenAI API: ${error.message}`);
-      throw error;
-    }
-  }
-
-  private async fetchRealNews(
-    categories: string[],
-    isInternational: boolean,
-    region: string | null,
-    limit: number,
-  ): Promise<NewsArticle[]> {
-    try {
-      const category = this.mapCategoryToNewsAPI(categories[0]);
-      const country = isInternational ? 'us' : 'br'; // Internacional: EUA, Nacional: Brasil
-      const language = isInternational ? 'en' : 'pt';
-      
-      this.logger.log(`Buscando notícias reais: país=${country}, categoria=${category}, idioma=${language}`);
-      
-      const url = `https://newsapi.org/v2/top-headlines?country=${country}&category=${category}&pageSize=${limit}&apiKey=${this.newsApiKey}`;
-      
-      const response = await fetch(url);
-      
-      if (!response.ok) {
-        throw new Error(`NewsAPI retornou status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      if (data.status !== 'ok' || !data.articles) {
-        throw new Error('Resposta inválida da NewsAPI');
-      }
-      
-      this.logger.log(`✅ ${data.articles.length} notícias REAIS recebidas da NewsAPI`);
-      
-      // Transformar notícias reais em NewsArticle
-      return data.articles.slice(0, limit).map((article: any, index: number) => ({
-        id: `${Date.now()}-${index}`,
-        title: article.title || 'Sem título',
-        description: article.description || article.title || 'Sem descrição',
-        content: article.content || article.description || 'Conteúdo não disponível',
-        imageUrl: article.urlToImage || 'https://via.placeholder.com/800x400?text=Notícia',
-        source: article.source?.name || 'Fonte desconhecida',
-        sourceUrl: article.url || '#',
-        publishedAt: new Date(article.publishedAt || Date.now()),
-        category: categories[0],
-        tags: this.extractTags(article.title + ' ' + article.description),
-        scope: isInternational ? NewsScope.INTERNACIONAL : NewsScope.NACIONAL,
-        locationCity: region || undefined,
-        locationCountry: isInternational ? undefined : 'Brasil',
-      }));
-    } catch (error) {
-      this.logger.error(`Erro ao buscar notícias reais: ${error.message}`);
-      // Fallback para notícias inventadas se a API falhar
-      this.logger.warn('⚠️ Fallback: usando notícias inventadas');
-      return isInternational
-        ? this.getMockInternationalNews(categories, limit)
-        : this.getMockNationalNews(categories, region, limit);
-    }
-  }
-  
-  private mapCategoryToNewsAPI(category: string): string {
-    const mapping: Record<string, string> = {
-      'politics': 'general',
-      'economy': 'business',
-      'technology': 'technology',
-      'sports': 'sports',
-      'entertainment': 'entertainment',
-      'health': 'health',
-      'science': 'science',
-      'environment': 'science',
+    return {
+      articles,
+      total: parseInt(total),
+      page,
+      limit,
     };
-    return mapping[category] || 'general';
-  }
-  
-  private extractTags(text: string): string[] {
-    // Extrair palavras-chave básicas do texto
-    const words = text.toLowerCase().split(/\W+/).filter(w => w.length > 4);
-    return words.slice(0, 3);
   }
 
-  private getMockInternationalNews(
-    categories: string[],
-    limit: number,
-  ): NewsArticle[] {
-    const now = new Date();
-    return [
-      {
-        id: '1',
-        title: 'Acordo climático histórico é firmado na COP',
-        description:
-          'Líderes mundiais chegam a consenso sobre metas de redução de emissões.',
-        content:
-          'Em reunião histórica, os principais líderes mundiais concordaram em estabelecer metas mais ambiciosas para redução de emissões de gases de efeito estufa. O acordo prevê investimentos em energia renovável e mecanismos de fiscalização mais rigorosos.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=Clima',
-        source: 'Global News',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 2 * 60 * 60 * 1000),
-        category: 'environment',
-        tags: ['clima', 'meio ambiente', 'política'],
-        scope: NewsScope.INTERNACIONAL,
-      },
-      {
-        id: '2',
-        title: 'Novo avanço na inteligência artificial revoluciona medicina',
-        description:
-          'IA consegue diagnosticar doenças raras com 99% de precisão.',
-        content:
-          'Pesquisadores desenvolveram um sistema de inteligência artificial capaz de identificar doenças raras com precisão sem precedentes. A tecnologia promete revolucionar o diagnóstico médico e salvar milhares de vidas.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=IA+Medicina',
-        source: 'Tech Today',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 5 * 60 * 60 * 1000),
-        category: 'technology',
-        tags: ['ia', 'medicina', 'tecnologia'],
-        scope: NewsScope.INTERNACIONAL,
-      },
-      {
-        id: '3',
-        title: 'Mercados globais registram alta histórica',
-        description:
-          'Bolsas de valores ao redor do mundo celebram melhor dia do ano.',
-        content:
-          'As principais bolsas de valores globais registraram ganhos significativos hoje, impulsionadas por dados econômicos positivos e expectativas de crescimento sustentável.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=Economia',
-        source: 'Financial Times',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 8 * 60 * 60 * 1000),
-        category: 'economy',
-        tags: ['economia', 'finanças', 'bolsa'],
-        scope: NewsScope.INTERNACIONAL,
-      },
-    ].slice(0, limit);
+  // ========================================================================
+  // BUSCA POR ID
+  // ========================================================================
+
+  async findOne(id: string): Promise<NewsArticle> {
+    const news = await this.newsRepository.findOne({
+      where: { id, isActive: true },
+    });
+
+    if (!news) {
+      throw new NotFoundException('Notícia não encontrada');
+    }
+
+    // Incrementar contador de visualizações
+    await this.newsRepository.increment({ id }, 'viewsCount', 1);
+
+    return news;
   }
 
-  private getMockNationalNews(
-    categories: string[],
-    region: string | null,
-    limit: number,
-  ): NewsArticle[] {
-    const now = new Date();
-    return [
-      {
-        id: '4',
-        title: 'Governo anuncia novo programa de infraestrutura',
-        description:
-          'Investimentos de R$ 100 bilhões em rodovias e ferrovias.',
-        content:
-          'O governo federal anunciou hoje um amplo programa de investimentos em infraestrutura, com foco em modernização de rodovias e expansão da malha ferroviária. O projeto deve gerar milhares de empregos.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=Infraestrutura',
-        source: 'Notícias Brasil',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 1 * 60 * 60 * 1000),
-        category: 'politics',
-        tags: ['infraestrutura', 'governo', 'economia'],
-        scope: NewsScope.NACIONAL,
-        locationCity: region || undefined,
-        locationCountry: 'Brasil',
-      },
-      {
-        id: '5',
-        title: 'Seleção brasileira vence amistoso internacional',
-        description: 'Brasil vence Argentina por 2x1 em jogo emocionante.',
-        content:
-          'Em partida disputada no Maracanã, a seleção brasileira venceu a Argentina por 2 a 1, com gols no segundo tempo. A vitória aumenta a confiança da equipe para os próximos compromissos.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=Futebol',
-        source: 'Esporte Total',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 3 * 60 * 60 * 1000),
-        category: 'sports',
-        tags: ['futebol', 'seleção', 'esporte'],
-        scope: NewsScope.NACIONAL,
-        locationCity: region || undefined,
-        locationCountry: 'Brasil',
-      },
-      {
-        id: '6',
-        title: 'Startup brasileira recebe investimento milionário',
-        description:
-          'Empresa de tecnologia capta R$ 50 milhões em rodada de investimentos.',
-        content:
-          'Uma startup brasileira do setor de fintechs anunciou ter recebido R$ 50 milhões em uma rodada de investimentos liderada por fundos internacionais. Os recursos serão usados para expansão.',
-        imageUrl: 'https://via.placeholder.com/800x400?text=Startup',
-        source: 'TechBrasil',
-        sourceUrl: '#',
-        publishedAt: new Date(now.getTime() - 6 * 60 * 60 * 1000),
-        category: 'technology',
-        tags: ['startup', 'tecnologia', 'investimento'],
-        scope: NewsScope.NACIONAL,
-        locationCity: region || undefined,
-        locationCountry: 'Brasil',
-      },
-    ].slice(0, limit);
+  // ========================================================================
+  // FULL-TEXT SEARCH
+  // ========================================================================
+
+  async search(query: string, limit: number = 20): Promise<NewsArticle[]> {
+    this.logger.log(`🔍 Buscando notícias: "${query}"`);
+
+    return this.newsRepository
+      .createQueryBuilder('news')
+      .where(
+        "to_tsvector('portuguese', news.title || ' ' || COALESCE(news.description, '') || ' ' || COALESCE(news.content, '')) @@ plainto_tsquery('portuguese', :query)",
+        { query },
+      )
+      .andWhere('news.is_active = true')
+      .orderBy('news.published_at', 'DESC')
+      .limit(limit)
+      .getMany();
+  }
+
+  // ========================================================================
+  // INTERAÇÕES: LIKES
+  // ========================================================================
+
+  async likeNews(newsId: string, userId: string): Promise<void> {
+    const news = await this.newsRepository.findOne({ where: { id: newsId } });
+    if (!news) {
+      throw new NotFoundException('Notícia não encontrada');
+    }
+
+    const existingLike = await this.newsLikeRepository.findOne({
+      where: { newsId, userId },
+    });
+
+    if (existingLike) {
+      throw new BadRequestException('Você já curtiu esta notícia');
+    }
+
+    const like = this.newsLikeRepository.create({ newsId, userId });
+    await this.newsLikeRepository.save(like);
+    await this.newsRepository.increment({ id: newsId }, 'likesCount', 1);
+
+    this.logger.debug(`👍 Usuário ${userId} curtiu notícia ${newsId}`);
+  }
+
+  async unlikeNews(newsId: string, userId: string): Promise<void> {
+    const like = await this.newsLikeRepository.findOne({
+      where: { newsId, userId },
+    });
+
+    if (!like) {
+      throw new NotFoundException('Curtida não encontrada');
+    }
+
+    await this.newsLikeRepository.remove(like);
+    await this.newsRepository.decrement({ id: newsId }, 'likesCount', 1);
+
+    this.logger.debug(`👎 Usuário ${userId} removeu curtida da notícia ${newsId}`);
+  }
+
+  async hasUserLikedNews(newsId: string, userId: string): Promise<boolean> {
+    const like = await this.newsLikeRepository.findOne({
+      where: { newsId, userId },
+    });
+    return !!like;
+  }
+
+  // ========================================================================
+  // INTERAÇÕES: SHARES
+  // ========================================================================
+
+  async shareNews(newsId: string, userId: string | null, platform?: string): Promise<void> {
+    const news = await this.newsRepository.findOne({ where: { id: newsId } });
+    if (!news) {
+      throw new NotFoundException('Notícia não encontrada');
+    }
+
+    const share = this.newsShareRepository.create({
+      newsId,
+      userId,
+      platform: platform || 'link',
+    });
+
+    await this.newsShareRepository.save(share);
+    await this.newsRepository.increment({ id: newsId }, 'sharesCount', 1);
+
+    this.logger.debug(`📤 Notícia ${newsId} compartilhada via ${platform || 'link'}`);
+  }
+
+  // ========================================================================
+  // ESTATÍSTICAS
+  // ========================================================================
+
+  async getStats(): Promise<{
+    total: number;
+    internacional: number;
+    nacional: number;
+    regional: number;
+    totalLikes: number;
+    totalShares: number;
+  }> {
+    const [total, internacional, nacional, regional] = await Promise.all([
+      this.newsRepository.count({ where: { isActive: true } }),
+      this.newsRepository.count({ where: { scope: NewsScope.INTERNACIONAL, isActive: true } }),
+      this.newsRepository.count({ where: { scope: NewsScope.NACIONAL, isActive: true } }),
+      this.newsRepository.count({ where: { scope: NewsScope.REGIONAL, isActive: true } }),
+    ]);
+
+    const likesCount = await this.newsLikeRepository.count();
+    const sharesCount = await this.newsShareRepository.count();
+
+    return {
+      total,
+      internacional,
+      nacional,
+      regional,
+      totalLikes: likesCount,
+      totalShares: sharesCount,
+    };
   }
 }
-
