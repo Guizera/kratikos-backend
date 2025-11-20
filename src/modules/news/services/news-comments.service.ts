@@ -1,64 +1,66 @@
 import { Injectable, Logger, NotFoundException, BadRequestException, ForbiddenException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
-import { Comment, CommentType } from './entities/comment.entity';
-import { CommentPollOption } from './entities/comment-poll-option.entity';
-import { CommentPollVote } from './entities/comment-poll-vote.entity';
-import { CommentLike } from './entities/comment-like.entity';
-import { Post } from '../posts/entities/post.entity';
-import { CreateCommentDto } from './dto/create-comment.dto';
+import { NewsComment, NewsCommentType } from '../entities/news-comment.entity';
+import { NewsCommentPollOption } from '../entities/news-comment-poll-option.entity';
+import { NewsCommentPollVote } from '../entities/news-comment-poll-vote.entity';
+import { NewsCommentLike } from '../entities/news-comment-like.entity';
+import { NewsArticle } from '../entities/news-article.entity';
+import { CreateNewsCommentDto } from '../dto/create-news-comment.dto';
 
 @Injectable()
-export class CommentsService {
-  private readonly logger = new Logger(CommentsService.name);
+export class NewsCommentsService {
+  private readonly logger = new Logger(NewsCommentsService.name);
 
   constructor(
-    @InjectRepository(Comment)
-    private readonly commentRepository: Repository<Comment>,
-    @InjectRepository(CommentPollOption)
-    private readonly pollOptionRepository: Repository<CommentPollOption>,
-    @InjectRepository(CommentPollVote)
-    private readonly pollVoteRepository: Repository<CommentPollVote>,
-    @InjectRepository(CommentLike)
-    private readonly commentLikeRepository: Repository<CommentLike>,
-    @InjectRepository(Post)
-    private readonly postRepository: Repository<Post>,
+    @InjectRepository(NewsComment)
+    private readonly commentRepository: Repository<NewsComment>,
+    @InjectRepository(NewsCommentPollOption)
+    private readonly pollOptionRepository: Repository<NewsCommentPollOption>,
+    @InjectRepository(NewsCommentPollVote)
+    private readonly pollVoteRepository: Repository<NewsCommentPollVote>,
+    @InjectRepository(NewsCommentLike)
+    private readonly commentLikeRepository: Repository<NewsCommentLike>,
+    @InjectRepository(NewsArticle)
+    private readonly newsRepository: Repository<NewsArticle>,
   ) {}
 
   // ========================================================================
   // CRIAR COMENTÁRIO
   // ========================================================================
 
-  async create(createCommentDto: CreateCommentDto, userId: string): Promise<Comment> {
-    const { postId, content, parentId, commentType, pollOptions } = createCommentDto;
-
-    // Verificar se post existe
-    const post = await this.postRepository.findOne({ where: { id: postId } });
-    if (!post) {
-      throw new NotFoundException('Post não encontrado');
+  async create(
+    newsId: string,
+    userId: string,
+    createCommentDto: CreateNewsCommentDto,
+  ): Promise<NewsComment> {
+    // Verificar se a notícia existe
+    const news = await this.newsRepository.findOne({ where: { id: newsId } });
+    if (!news) {
+      throw new NotFoundException('Notícia não encontrada');
     }
 
     // Validar: se é poll, deve ter opções
-    if (commentType === CommentType.POLL) {
-      if (!pollOptions || pollOptions.length < 2) {
+    if (createCommentDto.commentType === NewsCommentType.POLL) {
+      if (!createCommentDto.pollOptions || createCommentDto.pollOptions.length < 2) {
         throw new BadRequestException('Sub-enquete deve ter no mínimo 2 opções');
       }
     }
 
     // Criar comentário
     const comment = this.commentRepository.create({
-      postId,
+      newsId,
       userId,
-      content,
-      commentType: commentType || CommentType.TEXT,
-      parentId,
+      content: createCommentDto.content,
+      commentType: createCommentDto.commentType || NewsCommentType.TEXT,
+      parentCommentId: createCommentDto.parentCommentId,
     });
 
     const savedComment = await this.commentRepository.save(comment);
 
     // Se for poll, criar opções
-    if (commentType === CommentType.POLL && pollOptions) {
-      const options = pollOptions.map((opt, index) =>
+    if (createCommentDto.commentType === NewsCommentType.POLL && createCommentDto.pollOptions) {
+      const options = createCommentDto.pollOptions.map((opt, index) =>
         this.pollOptionRepository.create({
           commentId: savedComment.id,
           optionText: opt.optionText,
@@ -68,29 +70,23 @@ export class CommentsService {
       await this.pollOptionRepository.save(options);
     }
 
-    // Incrementar contador de comentários no post
-    await this.postRepository.increment({ id: postId }, 'commentsCount', 1);
-
-    this.logger.log(`Comentário criado: ${savedComment.id} no post ${postId}`);
+    this.logger.log(`Comentário criado: ${savedComment.id} na notícia ${newsId}`);
 
     // Recarregar com relações
-    return this.commentRepository.findOne({
-      where: { id: savedComment.id },
-      relations: ['user', 'pollOptions'],
-    });
+    return this.findOne(savedComment.id);
   }
 
   // ========================================================================
   // BUSCAR COMENTÁRIOS
   // ========================================================================
 
-  async findByPostId(
-    postId: string,
+  async findByNews(
+    newsId: string,
     page: number = 1,
     limit: number = 20,
-  ): Promise<{ comments: Comment[]; total: number }> {
+  ): Promise<{ comments: NewsComment[]; total: number }> {
     const [comments, total] = await this.commentRepository.findAndCount({
-      where: { postId, parentId: null }, // Apenas comentários raiz
+      where: { newsId, parentCommentId: null }, // Apenas comentários raiz
       relations: ['user', 'pollOptions', 'replies', 'replies.user'],
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
@@ -100,7 +96,7 @@ export class CommentsService {
     return { comments, total };
   }
 
-  async findOne(id: string): Promise<Comment> {
+  async findOne(id: string): Promise<NewsComment> {
     const comment = await this.commentRepository.findOne({
       where: { id },
       relations: ['user', 'pollOptions', 'replies', 'replies.user'],
@@ -117,9 +113,9 @@ export class CommentsService {
     commentId: string,
     page: number = 1,
     limit: number = 10,
-  ): Promise<{ replies: Comment[]; total: number }> {
+  ): Promise<{ replies: NewsComment[]; total: number }> {
     const [replies, total] = await this.commentRepository.findAndCount({
-      where: { parentId: commentId },
+      where: { parentCommentId: commentId },
       relations: ['user'],
       order: { createdAt: 'ASC' },
       skip: (page - 1) * limit,
@@ -133,9 +129,10 @@ export class CommentsService {
   // DELETAR COMENTÁRIO
   // ========================================================================
 
-  async delete(id: string, userId: string): Promise<void> {
+  async remove(id: string, userId: string): Promise<void> {
     const comment = await this.commentRepository.findOne({
       where: { id },
+      relations: ['user'],
     });
 
     if (!comment) {
@@ -144,14 +141,10 @@ export class CommentsService {
 
     // Apenas o autor pode deletar
     if (comment.userId !== userId) {
-      throw new ForbiddenException('Você não tem permissão para deletar este comentário');
+      throw new ForbiddenException('Você não pode deletar este comentário');
     }
 
     await this.commentRepository.remove(comment);
-
-    // Decrementar contador
-    await this.postRepository.decrement({ id: comment.postId }, 'commentsCount', 1);
-
     this.logger.log(`Comentário deletado: ${id}`);
   }
 
@@ -175,6 +168,7 @@ export class CommentsService {
 
     const like = this.commentLikeRepository.create({ commentId, userId });
     await this.commentLikeRepository.save(like);
+    await this.commentRepository.increment({ id: commentId }, 'likesCount', 1);
 
     this.logger.debug(`👍 Usuário ${userId} curtiu comentário ${commentId}`);
   }
@@ -189,6 +183,8 @@ export class CommentsService {
     }
 
     await this.commentLikeRepository.remove(like);
+    await this.commentRepository.decrement({ id: commentId }, 'likesCount', 1);
+
     this.logger.debug(`👎 Usuário ${userId} removeu curtida do comentário ${commentId}`);
   }
 
@@ -214,7 +210,7 @@ export class CommentsService {
     }
 
     // Verificar se é uma sub-enquete
-    if (option.comment.commentType !== CommentType.POLL) {
+    if (option.comment.commentType !== NewsCommentType.POLL) {
       throw new BadRequestException('Este comentário não é uma sub-enquete');
     }
 
@@ -275,19 +271,19 @@ export class CommentsService {
   // ESTATÍSTICAS
   // ========================================================================
 
-  async getStats(postId: string): Promise<{
+  async getStats(newsId: string): Promise<{
     totalComments: number;
     totalPolls: number;
     totalLikes: number;
   }> {
-    const totalComments = await this.commentRepository.count({ where: { postId } });
+    const totalComments = await this.commentRepository.count({ where: { newsId } });
     const totalPolls = await this.commentRepository.count({
-      where: { postId, commentType: CommentType.POLL },
+      where: { newsId, commentType: NewsCommentType.POLL },
     });
     const likesCount = await this.commentLikeRepository
       .createQueryBuilder('like')
       .innerJoin('like.comment', 'comment')
-      .where('comment.post_id = :postId', { postId })
+      .where('comment.news_id = :newsId', { newsId })
       .getCount();
 
     return {
@@ -297,3 +293,4 @@ export class CommentsService {
     };
   }
 }
+

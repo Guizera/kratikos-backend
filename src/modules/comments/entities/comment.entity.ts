@@ -2,6 +2,13 @@ import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateCol
 import { ApiProperty } from '@nestjs/swagger';
 import { User } from '../../users/entities/user.entity';
 import { Post } from '../../posts/entities/post.entity';
+import { CommentPollOption } from './comment-poll-option.entity';
+import { CommentLike } from './comment-like.entity';
+
+export enum CommentType {
+  TEXT = 'text',
+  POLL = 'poll',
+}
 
 @Entity('comments')
 export class Comment {
@@ -34,9 +41,30 @@ export class Comment {
   @ApiProperty({ description: 'Conteúdo do comentário' })
   content: string;
 
+  @Column({
+    name: 'comment_type',
+    type: 'enum',
+    enum: CommentType,
+    default: CommentType.TEXT,
+  })
+  @ApiProperty({ description: 'Tipo do comentário', enum: CommentType })
+  commentType: CommentType;
+
+  @OneToMany(() => CommentPollOption, option => option.comment)
+  @ApiProperty({ description: 'Opções da sub-enquete (se commentType = poll)' })
+  pollOptions: CommentPollOption[];
+
+  @OneToMany(() => CommentLike, like => like.comment)
+  @ApiProperty({ description: 'Curtidas no comentário' })
+  likes: CommentLike[];
+
   @Column({ name: 'likes_count', default: 0 })
   @ApiProperty({ description: 'Número de likes' })
   likesCount: number;
+
+  @Column({ name: 'replies_count', default: 0 })
+  @ApiProperty({ description: 'Número de respostas' })
+  repliesCount: number;
 
   @Column({ name: 'is_edited', default: false })
   @ApiProperty({ description: 'Indica se o comentário foi editado' })
