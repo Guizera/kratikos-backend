@@ -70,6 +70,9 @@ export class NewsCommentsService {
       await this.pollOptionRepository.save(options);
     }
 
+    // Incrementar contador de comentários na notícia
+    await this.newsRepository.increment({ id: newsId }, 'commentsCount', 1);
+
     this.logger.log(`Comentário criado: ${savedComment.id} na notícia ${newsId}`);
 
     // Recarregar com relações
