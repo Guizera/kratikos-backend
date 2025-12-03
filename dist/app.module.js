@@ -19,6 +19,7 @@ const app_service_1 = require("./app.service");
 const users_module_1 = require("./modules/users/users.module");
 const auth_module_1 = require("./modules/auth/auth.module");
 const posts_module_1 = require("./modules/posts/posts.module");
+const comments_module_1 = require("./modules/comments/comments.module");
 const polls_module_1 = require("./modules/polls/polls.module");
 const news_module_1 = require("./modules/news/news.module");
 const upload_module_1 = require("./modules/upload/upload.module");
@@ -67,6 +68,7 @@ exports.AppModule = AppModule = __decorate([
             users_module_1.UsersModule,
             auth_module_1.AuthModule,
             posts_module_1.PostsModule,
+            comments_module_1.CommentsModule,
             polls_module_1.PollsModule,
             news_module_1.NewsModule,
             upload_module_1.UploadModule,

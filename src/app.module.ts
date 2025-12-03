@@ -7,6 +7,7 @@ import { AppService } from './app.service';
 import { UsersModule } from './modules/users/users.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { PostsModule } from './modules/posts/posts.module';
+import { CommentsModule } from './modules/comments/comments.module';
 import { PollsModule } from './modules/polls/polls.module';
 import { NewsModule } from './modules/news/news.module';
 import { UploadModule } from './modules/upload/upload.module';
@@ -55,6 +56,7 @@ import newsapiConfig from './config/newsapi.config';
     UsersModule,
     AuthModule,
     PostsModule,
+    CommentsModule,
     PollsModule,
     NewsModule,
     UploadModule,
