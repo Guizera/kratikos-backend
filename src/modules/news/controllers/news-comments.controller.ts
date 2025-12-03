@@ -37,7 +37,7 @@ export class NewsCommentsController {
     @Body() createCommentDto: CreateNewsCommentDto,
     @Request() req,
   ): Promise<NewsComment> {
-    return this.commentsService.create(newsId, req.user.sub, createCommentDto);
+    return this.commentsService.create(newsId, req.user.userId, createCommentDto);
   }
 
   @Get(':id/comments')
@@ -81,7 +81,7 @@ export class NewsCommentsController {
   @ApiResponse({ status: 403, description: 'Você não pode deletar este comentário' })
   @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
   async deleteComment(@Param('id') id: string, @Request() req): Promise<void> {
-    await this.commentsService.remove(id, req.user.sub);
+    await this.commentsService.remove(id, req.user.userId);
   }
 
   // ========================================================================
@@ -95,7 +95,7 @@ export class NewsCommentsController {
   @ApiResponse({ status: 400, description: 'Você já curtiu este comentário' })
   @ApiResponse({ status: 404, description: 'Comentário não encontrado' })
   async likeComment(@Param('id') commentId: string, @Request() req): Promise<{ message: string }> {
-    await this.commentsService.likeComment(commentId, req.user.sub);
+    await this.commentsService.likeComment(commentId, req.user.userId);
     return { message: 'Comentário curtido com sucesso' };
   }
 
@@ -105,7 +105,7 @@ export class NewsCommentsController {
   @ApiResponse({ status: 204, description: 'Curtida removida com sucesso' })
   @ApiResponse({ status: 404, description: 'Curtida não encontrada' })
   async unlikeComment(@Param('id') commentId: string, @Request() req): Promise<void> {
-    await this.commentsService.unlikeComment(commentId, req.user.sub);
+    await this.commentsService.unlikeComment(commentId, req.user.userId);
   }
 
   @Get('comments/:id/liked')
@@ -115,7 +115,7 @@ export class NewsCommentsController {
     @Param('id') commentId: string,
     @Request() req,
   ): Promise<{ liked: boolean }> {
-    const liked = await this.commentsService.hasUserLikedComment(commentId, req.user.sub);
+    const liked = await this.commentsService.hasUserLikedComment(commentId, req.user.userId);
     return { liked };
   }
 
@@ -133,7 +133,7 @@ export class NewsCommentsController {
     @Param('optionId') optionId: string,
     @Request() req,
   ): Promise<{ message: string }> {
-    await this.commentsService.voteInPoll(optionId, req.user.sub);
+    await this.commentsService.voteInPoll(optionId, req.user.userId);
     return { message: 'Voto registrado com sucesso' };
   }
 
@@ -143,7 +143,7 @@ export class NewsCommentsController {
   @ApiResponse({ status: 204, description: 'Voto removido com sucesso' })
   @ApiResponse({ status: 404, description: 'Voto não encontrado' })
   async removeVoteFromPoll(@Param('optionId') optionId: string, @Request() req): Promise<void> {
-    await this.commentsService.removeVoteFromPoll(optionId, req.user.sub);
+    await this.commentsService.removeVoteFromPoll(optionId, req.user.userId);
   }
 
   @Get('comments/:id/poll/my-vote')
@@ -153,7 +153,7 @@ export class NewsCommentsController {
     @Param('id') commentId: string,
     @Request() req,
   ): Promise<{ optionId: string | null }> {
-    const optionId = await this.commentsService.getUserVoteInPoll(commentId, req.user.sub);
+    const optionId = await this.commentsService.getUserVoteInPoll(commentId, req.user.userId);
     return { optionId };
   }
 
