@@ -73,11 +73,22 @@ export class CommentsService {
 
     this.logger.log(`Comentário criado: ${savedComment.id} no post ${postId}`);
 
-    // Recarregar com relações
-    return this.commentRepository.findOne({
+    // Recarregar com relações e eager loading
+    const commentWithUser = await this.commentRepository.findOne({
       where: { id: savedComment.id },
       relations: ['user', 'pollOptions'],
     });
+
+    if (!commentWithUser) {
+      this.logger.error(`Comentário ${savedComment.id} não encontrado após criação`);
+      throw new NotFoundException('Erro ao criar comentário');
+    }
+
+    if (!commentWithUser.user) {
+      this.logger.warn(`Usuário não carregado para comentário ${savedComment.id}, userId: ${userId}`);
+    }
+
+    return commentWithUser;
   }
 
   // ========================================================================

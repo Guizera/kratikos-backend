@@ -45,6 +45,7 @@ __decorate([
 ], Comment.prototype, "user", void 0);
 __decorate([
     (0, typeorm_1.Column)({ name: 'user_id' }),
+    (0, swagger_1.ApiProperty)({ description: 'ID do usuário' }),
     __metadata("design:type", String)
 ], Comment.prototype, "userId", void 0);
 __decorate([

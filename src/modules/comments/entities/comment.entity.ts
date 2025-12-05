@@ -28,6 +28,7 @@ export class Comment {
   user: User;
 
   @Column({ name: 'user_id' })
+  @ApiProperty({ description: 'ID do usuário' })
   userId: string;
 
   @ManyToOne(() => Comment, { nullable: true })
