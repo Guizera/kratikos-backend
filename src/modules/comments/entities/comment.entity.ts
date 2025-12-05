@@ -23,7 +23,7 @@ export class Comment {
   @Column({ name: 'post_id' })
   postId: string;
 
-  @ManyToOne(() => User, { eager: true })
+  @ManyToOne(() => User)
   @ApiProperty({ description: 'Autor do comentário' })
   user: User;
 

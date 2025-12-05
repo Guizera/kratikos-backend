@@ -153,13 +153,15 @@ export class CommentsService {
     page: number = 1,
     limit: number = 10,
   ): Promise<{ replies: Comment[]; total: number }> {
-    const [replies, total] = await this.commentRepository.findAndCount({
-      where: { parentId: commentId },
-      relations: ['user'],
-      order: { createdAt: 'ASC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .where('comment.parentId = :commentId', { commentId })
+      .orderBy('comment.createdAt', 'ASC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [replies, total] = await queryBuilder.getManyAndCount();
 
     return { replies, total };
   }
