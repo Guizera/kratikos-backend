@@ -6,6 +6,7 @@ import { CommentPollOption } from './entities/comment-poll-option.entity';
 import { CommentPollVote } from './entities/comment-poll-vote.entity';
 import { CommentLike } from './entities/comment-like.entity';
 import { Post } from '../posts/entities/post.entity';
+import { User } from '../users/entities/user.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
 
 @Injectable()
@@ -73,11 +74,13 @@ export class CommentsService {
 
     this.logger.log(`Comentário criado: ${savedComment.id} no post ${postId}`);
 
-    // Recarregar com relações e eager loading
-    const commentWithUser = await this.commentRepository.findOne({
-      where: { id: savedComment.id },
-      relations: ['user', 'pollOptions'],
-    });
+    // Recarregar com relações usando query builder para garantir que user seja carregado
+    const commentWithUser = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('comment.pollOptions', 'pollOptions')
+      .where('comment.id = :id', { id: savedComment.id })
+      .getOne();
 
     if (!commentWithUser) {
       this.logger.error(`Comentário ${savedComment.id} não encontrado após criação`);
@@ -85,7 +88,17 @@ export class CommentsService {
     }
 
     if (!commentWithUser.user) {
-      this.logger.warn(`Usuário não carregado para comentário ${savedComment.id}, userId: ${userId}`);
+      this.logger.error(`❌ Usuário não carregado para comentário ${savedComment.id}, userId: ${userId}`);
+      
+      // Tentar buscar o usuário diretamente
+      const user = await this.commentRepository.manager.findOne(User, { where: { id: userId } });
+      if (!user) {
+        this.logger.error(`❌ Usuário ${userId} não existe no banco de dados`);
+      } else {
+        this.logger.log(`✅ Usuário ${userId} existe: ${user.name || user.email}`);
+      }
+    } else {
+      this.logger.log(`✅ Comentário criado com usuário: ${commentWithUser.user.name}`);
     }
 
     return commentWithUser;
@@ -100,22 +113,33 @@ export class CommentsService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ comments: Comment[]; total: number }> {
-    const [comments, total] = await this.commentRepository.findAndCount({
-      where: { postId, parentId: null }, // Apenas comentários raiz
-      relations: ['user', 'pollOptions', 'replies', 'replies.user'],
-      order: { createdAt: 'DESC' },
-      skip: (page - 1) * limit,
-      take: limit,
-    });
+    // Usar query builder para garantir que user seja carregado
+    const queryBuilder = this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('comment.pollOptions', 'pollOptions')
+      .leftJoinAndSelect('comment.replies', 'replies')
+      .leftJoinAndSelect('replies.user', 'repliesUser')
+      .where('comment.postId = :postId', { postId })
+      .andWhere('comment.parentId IS NULL') // Apenas comentários raiz
+      .orderBy('comment.createdAt', 'DESC')
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const [comments, total] = await queryBuilder.getManyAndCount();
 
     return { comments, total };
   }
 
   async findOne(id: string): Promise<Comment> {
-    const comment = await this.commentRepository.findOne({
-      where: { id },
-      relations: ['user', 'pollOptions', 'replies', 'replies.user'],
-    });
+    const comment = await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('comment.pollOptions', 'pollOptions')
+      .leftJoinAndSelect('comment.replies', 'replies')
+      .leftJoinAndSelect('replies.user', 'repliesUser')
+      .where('comment.id = :id', { id })
+      .getOne();
 
     if (!comment) {
       throw new NotFoundException('Comentário não encontrado');
