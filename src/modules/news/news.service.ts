@@ -26,8 +26,9 @@ export class NewsService {
     category?: string,
     page: number = 1,
     limit: number = 20,
+    userId?: string,
   ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
-    this.logger.log(`🌍 Buscando notícias internacionais: category=${category}, page=${page}`);
+    this.logger.log(`🌍 Buscando notícias internacionais: category=${category}, page=${page}, userId=${userId}`);
 
     const query = this.newsRepository
       .createQueryBuilder('news')
@@ -44,6 +45,11 @@ export class NewsService {
       .take(limit)
       .getManyAndCount();
 
+    // Adicionar hasLiked para cada artigo se userId fornecido
+    if (userId) {
+      await this.enrichArticlesWithUserData(articles, userId);
+    }
+
     return { articles, total, page, limit };
   }
 
@@ -51,8 +57,9 @@ export class NewsService {
     category?: string,
     page: number = 1,
     limit: number = 20,
+    userId?: string,
   ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
-    this.logger.log(`🇧🇷 Buscando notícias nacionais: category=${category}, page=${page}`);
+    this.logger.log(`🇧🇷 Buscando notícias nacionais: category=${category}, page=${page}, userId=${userId}`);
 
     const query = this.newsRepository
       .createQueryBuilder('news')
@@ -69,6 +76,11 @@ export class NewsService {
       .take(limit)
       .getManyAndCount();
 
+    // Adicionar hasLiked para cada artigo se userId fornecido
+    if (userId) {
+      await this.enrichArticlesWithUserData(articles, userId);
+    }
+
     return { articles, total, page, limit };
   }
 
@@ -79,8 +91,9 @@ export class NewsService {
     category?: string,
     page: number = 1,
     limit: number = 20,
+    userId?: string,
   ): Promise<{ articles: NewsArticle[]; total: number; page: number; limit: number }> {
-    this.logger.log(`📍 Buscando notícias regionais: lat=${lat}, lng=${lng}, range=${rangeKm}km`);
+    this.logger.log(`📍 Buscando notícias regionais: lat=${lat}, lng=${lng}, range=${rangeKm}km, userId=${userId}`);
 
     const skip = (page - 1) * limit;
 
@@ -153,6 +166,11 @@ export class NewsService {
     `;
 
     const [{ total }] = await this.newsRepository.query(countQuery, countParams);
+
+    // Adicionar hasLiked para cada artigo se userId fornecido
+    if (userId) {
+      await this.enrichArticlesWithUserData(articles, userId);
+    }
 
     return {
       articles,
@@ -245,6 +263,27 @@ export class NewsService {
       where: { newsId, userId },
     });
     return !!like;
+  }
+
+  /**
+   * Enriquece artigos com dados do usuário (hasLiked, etc)
+   */
+  private async enrichArticlesWithUserData(articles: NewsArticle[], userId: string): Promise<void> {
+    // Buscar todos os likes do usuário para esses artigos de uma vez (otimização)
+    const articleIds = articles.map(a => a.id);
+    const userLikes = await this.newsLikeRepository.find({
+      where: { userId },
+      select: ['newsId'],
+    });
+    
+    const likedNewsIds = new Set(userLikes.map(like => like.newsId));
+    
+    // Adicionar hasLiked a cada artigo
+    articles.forEach((article: any) => {
+      article.hasLiked = likedNewsIds.has(article.id);
+    });
+    
+    this.logger.debug(`✅ Enriquecidos ${articles.length} artigos com dados do usuário ${userId}`);
   }
 
   // ========================================================================

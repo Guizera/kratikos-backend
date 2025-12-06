@@ -41,8 +41,10 @@ export class NewsController {
     @Query('category') category?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Request() req?,
   ) {
-    return this.newsService.getInternationalNews(category, page, limit);
+    const userId = req?.user?.userId; // Pegar userId se estiver autenticado
+    return this.newsService.getInternationalNews(category, page, limit, userId);
   }
 
   @Get('national')
@@ -55,8 +57,10 @@ export class NewsController {
     @Query('category') category?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Request() req?,
   ) {
-    return this.newsService.getNationalNews(category, page, limit);
+    const userId = req?.user?.userId; // Pegar userId se estiver autenticado
+    return this.newsService.getNationalNews(category, page, limit, userId);
   }
 
   @Get('regional')
@@ -75,6 +79,7 @@ export class NewsController {
     @Query('category') category?: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page?: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit?: number,
+    @Request() req?,
   ) {
     const latitude = parseFloat(lat);
     const longitude = parseFloat(lng);
@@ -83,7 +88,8 @@ export class NewsController {
       throw new Error('Latitude e longitude devem ser números válidos');
     }
 
-    return this.newsService.getRegionalNews(latitude, longitude, range, category, page, limit);
+    const userId = req?.user?.userId; // Pegar userId se estiver autenticado
+    return this.newsService.getRegionalNews(latitude, longitude, range, category, page, limit, userId);
   }
 
   // ========================================================================
