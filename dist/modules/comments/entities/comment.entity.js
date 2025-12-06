@@ -39,14 +39,14 @@ __decorate([
     __metadata("design:type", String)
 ], Comment.prototype, "postId", void 0);
 __decorate([
-    (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'Autor do comentário' }),
+    (0, swagger_1.ApiProperty)({ description: 'Autor do comentário', required: false }),
     __metadata("design:type", user_entity_1.User)
 ], Comment.prototype, "user", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'user_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'ID do usuário' }),
+    (0, typeorm_1.Column)({ name: 'user_id', nullable: true }),
+    (0, swagger_1.ApiProperty)({ description: 'ID do usuário', required: false }),
     __metadata("design:type", String)
 ], Comment.prototype, "userId", void 0);
 __decorate([

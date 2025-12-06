@@ -33,10 +33,23 @@ export class CommentsService {
   async create(createCommentDto: CreateCommentDto, userId: string): Promise<Comment> {
     const { postId, content, parentId, commentType, pollOptions } = createCommentDto;
 
+    // Validar userId
+    if (!userId) {
+      this.logger.error('❌ Tentativa de criar comentário sem userId');
+      throw new BadRequestException('Usuário não autenticado');
+    }
+
     // Verificar se post existe
     const post = await this.postRepository.findOne({ where: { id: postId } });
     if (!post) {
       throw new NotFoundException('Post não encontrado');
+    }
+
+    // Verificar se usuário existe
+    const user = await this.commentRepository.manager.findOne(User, { where: { id: userId } });
+    if (!user) {
+      this.logger.error(`❌ Tentativa de criar comentário com userId inválido: ${userId}`);
+      throw new BadRequestException('Usuário não encontrado');
     }
 
     // Validar: se é poll, deve ter opções

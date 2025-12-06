@@ -23,13 +23,13 @@ export class Comment {
   @Column({ name: 'post_id' })
   postId: string;
 
-  @ManyToOne(() => User)
+  @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Autor do comentário' })
+  @ApiProperty({ description: 'Autor do comentário', required: false })
   user: User;
 
-  @Column({ name: 'user_id' })
-  @ApiProperty({ description: 'ID do usuário' })
+  @Column({ name: 'user_id', nullable: true })
+  @ApiProperty({ description: 'ID do usuário', required: false })
   userId: string;
 
   @ManyToOne(() => Comment, { nullable: true })
