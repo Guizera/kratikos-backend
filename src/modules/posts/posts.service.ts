@@ -100,7 +100,7 @@ export class PostsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['category', 'tags'],
+      relations: ['author', 'category', 'tags'],
     });
 
     return { data, total };

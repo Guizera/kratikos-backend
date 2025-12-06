@@ -46,7 +46,7 @@ exports.AppModule = AppModule = __decorate([
                     const config = {
                         type: 'postgres',
                         entities: [__dirname + '/**/*.entity{.ts,.js}'],
-                        synchronize: false,
+                        synchronize: process.env.NODE_ENV === 'development',
                         logging: process.env.NODE_ENV === 'development',
                     };
                     if (configService.get('database.url')) {
