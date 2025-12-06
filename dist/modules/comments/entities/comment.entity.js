@@ -40,6 +40,7 @@ __decorate([
 ], Comment.prototype, "postId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User),
+    (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
     (0, swagger_1.ApiProperty)({ description: 'Autor do comentário' }),
     __metadata("design:type", user_entity_1.User)
 ], Comment.prototype, "user", void 0);

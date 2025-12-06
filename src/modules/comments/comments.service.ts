@@ -113,6 +113,8 @@ export class CommentsService {
     page: number = 1,
     limit: number = 20,
   ): Promise<{ comments: Comment[]; total: number }> {
+    this.logger.log(`📥 Buscando comentários do post ${postId} (page: ${page}, limit: ${limit})`);
+    
     // Usar query builder para garantir que user seja carregado
     const queryBuilder = this.commentRepository
       .createQueryBuilder('comment')
@@ -127,6 +129,27 @@ export class CommentsService {
       .take(limit);
 
     const [comments, total] = await queryBuilder.getManyAndCount();
+
+    this.logger.log(`📊 Encontrados ${comments.length} comentários (total: ${total})`);
+    
+    // Log detalhado de cada comentário
+    comments.forEach((comment, index) => {
+      if (comment.user) {
+        this.logger.log(`  ✅ Comentário ${index + 1}: user carregado - ${comment.user.name} (${comment.user.id})`);
+      } else {
+        this.logger.error(`  ❌ Comentário ${index + 1}: user é NULL - userId: ${comment.userId}`);
+        
+        // Verificar se o userId existe na tabela users
+        this.commentRepository.manager.findOne(User, { where: { id: comment.userId } })
+          .then(user => {
+            if (user) {
+              this.logger.error(`    ⚠️ Usuário ${comment.userId} EXISTE no banco: ${user.name}, mas não foi carregado pelo join!`);
+            } else {
+              this.logger.error(`    ⚠️ Usuário ${comment.userId} NÃO EXISTE no banco!`);
+            }
+          });
+      }
+    });
 
     return { comments, total };
   }
