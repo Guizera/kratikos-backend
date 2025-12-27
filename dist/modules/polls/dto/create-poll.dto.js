@@ -9,10 +9,48 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CreatePollDto = void 0;
+exports.CreatePollDto = exports.PollLocationDto = void 0;
 const class_validator_1 = require("class-validator");
 const class_transformer_1 = require("class-transformer");
 const swagger_1 = require("@nestjs/swagger");
+const location_dto_1 = require("../../posts/dto/location.dto");
+class PollLocationDto {
+}
+exports.PollLocationDto = PollLocationDto;
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, swagger_1.ApiProperty)({ description: 'Latitude' }),
+    __metadata("design:type", Number)
+], PollLocationDto.prototype, "lat", void 0);
+__decorate([
+    (0, class_validator_1.IsNumber)(),
+    (0, swagger_1.ApiProperty)({ description: 'Longitude' }),
+    __metadata("design:type", Number)
+], PollLocationDto.prototype, "lng", void 0);
+__decorate([
+    (0, class_validator_1.IsInt)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({ description: 'Raio em KM', default: 50 }),
+    __metadata("design:type", Number)
+], PollLocationDto.prototype, "range_km", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({ description: 'Cidade' }),
+    __metadata("design:type", String)
+], PollLocationDto.prototype, "city", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({ description: 'Estado' }),
+    __metadata("design:type", String)
+], PollLocationDto.prototype, "state", void 0);
+__decorate([
+    (0, class_validator_1.IsString)(),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({ description: 'País', default: 'Brasil' }),
+    __metadata("design:type", String)
+], PollLocationDto.prototype, "country", void 0);
 class CreatePollDto {
 }
 exports.CreatePollDto = CreatePollDto;
@@ -76,4 +114,24 @@ __decorate([
     }),
     __metadata("design:type", Array)
 ], CreatePollDto.prototype, "options", void 0);
+__decorate([
+    (0, class_validator_1.IsEnum)(location_dto_1.PostScope),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({
+        description: 'Escopo da enquete',
+        enum: location_dto_1.PostScope,
+        default: location_dto_1.PostScope.NACIONAL
+    }),
+    __metadata("design:type", String)
+], CreatePollDto.prototype, "scope", void 0);
+__decorate([
+    (0, class_validator_1.ValidateNested)(),
+    (0, class_transformer_1.Type)(() => PollLocationDto),
+    (0, class_validator_1.IsOptional)(),
+    (0, swagger_1.ApiProperty)({
+        description: 'Localização (obrigatório se scope = regional)',
+        type: PollLocationDto
+    }),
+    __metadata("design:type", PollLocationDto)
+], CreatePollDto.prototype, "location", void 0);
 //# sourceMappingURL=create-poll.dto.js.map

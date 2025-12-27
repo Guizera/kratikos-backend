@@ -1,6 +1,37 @@
-import { IsNotEmpty, IsString, IsOptional, IsInt, Min, IsArray, IsDate, ArrayMinSize } from 'class-validator';
+import { IsNotEmpty, IsString, IsOptional, IsInt, Min, IsArray, IsDate, ArrayMinSize, IsEnum, IsNumber, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
+import { PostScope } from '../../posts/dto/location.dto';
+
+export class PollLocationDto {
+  @IsNumber()
+  @ApiProperty({ description: 'Latitude' })
+  lat: number;
+
+  @IsNumber()
+  @ApiProperty({ description: 'Longitude' })
+  lng: number;
+
+  @IsInt()
+  @IsOptional()
+  @ApiProperty({ description: 'Raio em KM', default: 50 })
+  range_km?: number;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ description: 'Cidade' })
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ description: 'Estado' })
+  state?: string;
+
+  @IsString()
+  @IsOptional()
+  @ApiProperty({ description: 'País', default: 'Brasil' })
+  country?: string;
+}
 
 export class CreatePollDto {
   @IsString()
@@ -56,4 +87,22 @@ export class CreatePollDto {
     example: ['Manhã (8h-12h)', 'Tarde (14h-18h)', 'Noite (19h-21h)'] 
   })
   options: string[];
+
+  @IsEnum(PostScope)
+  @IsOptional()
+  @ApiProperty({ 
+    description: 'Escopo da enquete',
+    enum: PostScope,
+    default: PostScope.NACIONAL
+  })
+  scope?: PostScope;
+
+  @ValidateNested()
+  @Type(() => PollLocationDto)
+  @IsOptional()
+  @ApiProperty({ 
+    description: 'Localização (obrigatório se scope = regional)',
+    type: PollLocationDto
+  })
+  location?: PollLocationDto;
 }

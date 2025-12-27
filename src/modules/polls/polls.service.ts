@@ -7,6 +7,7 @@ import { PollVote } from './entities/poll-vote.entity';
 import { CreatePollDto } from './dto/create-poll.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
 import { Post, PostType } from '../posts/entities/post.entity';
+import { PostScope } from '../posts/dto/location.dto';
 
 @Injectable()
 export class PollsService {
@@ -22,7 +23,7 @@ export class PollsService {
   ) {}
 
   async create(createPollDto: CreatePollDto, authorId: string): Promise<Poll> {
-    const { question, description, endDate, minOptions, maxOptions, options } = createPollDto;
+    const { question, description, endDate, minOptions, maxOptions, options, scope, location } = createPollDto;
 
     // Criar o post associado à enquete
     const post = this.postRepository.create({
@@ -30,6 +31,13 @@ export class PollsService {
       content: description || question,
       type: PostType.ENQUETE,
       authorId,
+      scope: scope || PostScope.NACIONAL,
+      locationLat: location?.lat,
+      locationLng: location?.lng,
+      locationRangeKm: location?.range_km || 50,
+      locationCity: location?.city,
+      locationState: location?.state,
+      locationCountry: location?.country || 'Brasil',
     });
     const savedPost = await this.postRepository.save(post);
 
