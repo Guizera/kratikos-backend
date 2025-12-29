@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { PostLike } from './entities/post-like.entity';
+import { SavedPost } from './entities/saved-post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostScope } from './dto/location.dto';
@@ -14,6 +15,8 @@ export class PostsService {
     private readonly postRepository: Repository<Post>,
     @InjectRepository(PostLike)
     private readonly postLikeRepository: Repository<PostLike>,
+    @InjectRepository(SavedPost)
+    private readonly savedPostRepository: Repository<SavedPost>,
   ) {}
 
   async create(createPostDto: CreatePostDto, authorId: string): Promise<Post> {
@@ -296,6 +299,71 @@ export class PostsService {
 
     // Incrementar contador de compartilhamentos
     await this.postRepository.increment({ id: postId }, 'sharesCount', 1);
+  }
+
+  // ========================================================================
+  // SALVAR POSTS
+  // ========================================================================
+
+  async savePost(postId: string, userId: string): Promise<void> {
+    // Verificar se post existe
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+    if (!post) {
+      throw new NotFoundException('Post não encontrado');
+    }
+
+    // Verificar se já está salvo
+    const existingSave = await this.savedPostRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (existingSave) {
+      throw new BadRequestException('Post já está salvo');
+    }
+
+    // Salvar post
+    const savedPost = this.savedPostRepository.create({ postId, userId });
+    await this.savedPostRepository.save(savedPost);
+  }
+
+  async unsavePost(postId: string, userId: string): Promise<void> {
+    const savedPost = await this.savedPostRepository.findOne({
+      where: { postId, userId },
+    });
+
+    if (!savedPost) {
+      throw new NotFoundException('Post não está salvo');
+    }
+
+    await this.savedPostRepository.remove(savedPost);
+  }
+
+  async hasUserSavedPost(postId: string, userId: string): Promise<boolean> {
+    const savedPost = await this.savedPostRepository.findOne({
+      where: { postId, userId },
+    });
+    return !!savedPost;
+  }
+
+  async getSavedPosts(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ posts: Post[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    // Buscar posts salvos com suas relações
+    const [savedPosts, total] = await this.savedPostRepository.findAndCount({
+      where: { userId },
+      relations: ['post', 'post.author', 'post.category'],
+      order: { savedAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const posts = savedPosts.map(sp => sp.post);
+
+    return { posts, total };
   }
 }
 

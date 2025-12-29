@@ -12,6 +12,8 @@ import {
   ParseUUIDPipe,
   DefaultValuePipe,
   ParseIntPipe,
+  HttpCode,
+  HttpStatus,
 } from '@nestjs/common';
 import { ApiTags, ApiOperation, ApiResponse, ApiBearerAuth, ApiQuery } from '@nestjs/swagger';
 import { PostsService } from './posts.service';
@@ -287,6 +289,68 @@ export class PostsController {
   async sharePost(@Param('id', ParseUUIDPipe) id: string) {
     await this.postsService.sharePost(id);
     return { message: 'Post compartilhado com sucesso' };
+  }
+
+  // ========================================================================
+  // SALVAR POSTS
+  // ========================================================================
+
+  @Post('posts/:id/save')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Salvar um post' })
+  @ApiResponse({ status: 201, description: 'Post salvo com sucesso' })
+  @ApiResponse({ status: 400, description: 'Post já está salvo' })
+  @ApiResponse({ status: 404, description: 'Post não encontrado' })
+  async savePost(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    await this.postsService.savePost(postId, req.user.userId);
+    return { message: 'Post salvo com sucesso' };
+  }
+
+  @Delete('posts/:id/save')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remover post dos salvos' })
+  @ApiResponse({ status: 204, description: 'Post removido dos salvos' })
+  @ApiResponse({ status: 404, description: 'Post não está salvo' })
+  async unsavePost(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    await this.postsService.unsavePost(postId, req.user.userId);
+  }
+
+  @Get('posts/:id/saved')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verificar se usuário salvou o post' })
+  @ApiResponse({ status: 200, description: 'Status retornado' })
+  async hasUserSavedPost(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    const saved = await this.postsService.hasUserSavedPost(postId, req.user.userId);
+    return { saved };
+  }
+
+  @Get('posts/saved/list')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar posts salvos do usuário' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Lista de posts salvos' })
+  async getSavedPosts(
+    @Request() req,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    return this.postsService.getSavedPosts(req.user.userId, page, limit);
   }
 }
 
