@@ -1,4 +1,4 @@
-import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn, ManyToOne, JoinColumn } from 'typeorm';
 import { ApiProperty } from '@nestjs/swagger';
 import { Poll } from './poll.entity';
 
@@ -9,6 +9,7 @@ export class PollOption {
   id: string;
 
   @ManyToOne(() => Poll, poll => poll.options)
+  @JoinColumn({ name: 'poll_id' })
   @ApiProperty({ description: 'Enquete relacionada' })
   poll: Poll;
 
