@@ -110,8 +110,11 @@ export class PostsService {
     data.forEach((post) => {
       if (post.poll) {
         console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Poll object keys:', Object.keys(post.poll));
         console.log('   📊 Options no backend:', post.poll.options?.length || 0);
-        if (post.poll.options) {
+        console.log('   📊 Options type:', typeof post.poll.options);
+        console.log('   📊 Options value:', post.poll.options);
+        if (post.poll.options && post.poll.options.length > 0) {
           post.poll.options.forEach((opt, i) => {
             console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
           });
@@ -148,8 +151,11 @@ export class PostsService {
     data.forEach((post) => {
       if (post.poll) {
         console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Poll object keys:', Object.keys(post.poll));
         console.log('   📊 Options no backend:', post.poll.options?.length || 0);
-        if (post.poll.options) {
+        console.log('   📊 Options type:', typeof post.poll.options);
+        console.log('   📊 Options value:', post.poll.options);
+        if (post.poll.options && post.poll.options.length > 0) {
           post.poll.options.forEach((opt, i) => {
             console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
           });
@@ -179,8 +185,11 @@ export class PostsService {
     data.forEach((post) => {
       if (post.poll) {
         console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Poll object keys:', Object.keys(post.poll));
         console.log('   📊 Options no backend:', post.poll.options?.length || 0);
-        if (post.poll.options) {
+        console.log('   📊 Options type:', typeof post.poll.options);
+        console.log('   📊 Options value:', post.poll.options);
+        if (post.poll.options && post.poll.options.length > 0) {
           post.poll.options.forEach((opt, i) => {
             console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
           });
