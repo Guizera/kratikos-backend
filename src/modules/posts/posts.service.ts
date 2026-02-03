@@ -103,7 +103,20 @@ export class PostsService {
       order: { createdAt: 'DESC' },
       skip: (page - 1) * limit,
       take: limit,
-      relations: ['author', 'category', 'tags'],
+      relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
+    });
+
+    // DEBUG: Log para verificar opções das enquetes
+    data.forEach((post) => {
+      if (post.poll) {
+        console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+        if (post.poll.options) {
+          post.poll.options.forEach((opt, i) => {
+            console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+          });
+        }
+      }
     });
 
     return { data, total };
@@ -131,6 +144,19 @@ export class PostsService {
       relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
     });
 
+    // DEBUG: Log para verificar opções das enquetes
+    data.forEach((post) => {
+      if (post.poll) {
+        console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+        if (post.poll.options) {
+          post.poll.options.forEach((opt, i) => {
+            console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+          });
+        }
+      }
+    });
+
     return {
       data,
       total,
@@ -147,6 +173,19 @@ export class PostsService {
       skip: (page - 1) * limit,
       take: limit,
       relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
+    });
+
+    // DEBUG: Log para verificar opções das enquetes
+    data.forEach((post) => {
+      if (post.poll) {
+        console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+        console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+        if (post.poll.options) {
+          post.poll.options.forEach((opt, i) => {
+            console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+          });
+        }
+      }
     });
 
     return {
