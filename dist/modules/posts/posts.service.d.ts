@@ -1,12 +1,14 @@
 import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { PostLike } from './entities/post-like.entity';
+import { SavedPost } from './entities/saved-post.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 export declare class PostsService {
     private readonly postRepository;
     private readonly postLikeRepository;
-    constructor(postRepository: Repository<Post>, postLikeRepository: Repository<PostLike>);
+    private readonly savedPostRepository;
+    constructor(postRepository: Repository<Post>, postLikeRepository: Repository<PostLike>, savedPostRepository: Repository<SavedPost>);
     create(createPostDto: CreatePostDto, authorId: string): Promise<Post>;
     findAll(page?: number, limit?: number): Promise<{
         data: Post[];
@@ -47,4 +49,11 @@ export declare class PostsService {
     unlikePost(postId: string, userId: string): Promise<void>;
     hasUserLikedPost(postId: string, userId: string): Promise<boolean>;
     sharePost(postId: string): Promise<void>;
+    savePost(postId: string, userId: string): Promise<void>;
+    unsavePost(postId: string, userId: string): Promise<void>;
+    hasUserSavedPost(postId: string, userId: string): Promise<boolean>;
+    getSavedPosts(userId: string, page?: number, limit?: number): Promise<{
+        posts: Post[];
+        total: number;
+    }>;
 }

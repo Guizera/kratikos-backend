@@ -63,4 +63,15 @@ export declare class PostsController {
     sharePost(id: string): Promise<{
         message: string;
     }>;
+    savePost(postId: string, req: any): Promise<{
+        message: string;
+    }>;
+    unsavePost(postId: string, req: any): Promise<void>;
+    hasUserSavedPost(postId: string, req: any): Promise<{
+        saved: boolean;
+    }>;
+    getSavedPosts(req: any, page: number, limit: number): Promise<{
+        posts: import("./entities/post.entity").Post[];
+        total: number;
+    }>;
 }

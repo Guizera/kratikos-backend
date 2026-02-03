@@ -25,6 +25,11 @@ export class PollsService {
   async create(createPollDto: CreatePollDto, authorId: string): Promise<Poll> {
     const { question, description, endDate, minOptions, maxOptions, options, scope, location } = createPollDto;
 
+    // DEBUG: Log das opções recebidas
+    console.log('🔍 Criando enquete:', question);
+    console.log('📊 Opções recebidas:', options);
+    console.log('📊 Número de opções:', options?.length || 0);
+
     // Criar o post associado à enquete
     const post = this.postRepository.create({
       title: question.substring(0, 200), // Usar a pergunta como título (limitado a 200 chars)
@@ -54,6 +59,7 @@ export class PollsService {
     const savedPoll = await this.pollRepository.save(poll);
 
     // Criar as opções da enquete
+    console.log('📝 Criando opções para poll:', savedPoll.id);
     const pollOptions = options.map((content) =>
       this.pollOptionRepository.create({
         pollId: savedPoll.id,
@@ -61,13 +67,17 @@ export class PollsService {
         votesCount: 0,
       }),
     );
-    await this.pollOptionRepository.save(pollOptions);
+    console.log('📝 Opções criadas:', pollOptions.length);
+    const savedOptions = await this.pollOptionRepository.save(pollOptions);
+    console.log('✅ Opções salvas no banco:', savedOptions.length);
 
     // Retornar a enquete com as opções
-    return this.pollRepository.findOne({
+    const result = await this.pollRepository.findOne({
       where: { id: savedPoll.id },
       relations: ['options', 'post'],
     });
+    console.log('📤 Retornando enquete com', result?.options?.length || 0, 'opções');
+    return result;
   }
 
   async findAll(page: number = 1, limit: number = 10): Promise<{ data: Poll[]; total: number; page: number; limit: number }> {

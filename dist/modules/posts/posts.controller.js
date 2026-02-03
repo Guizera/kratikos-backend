@@ -81,6 +81,20 @@ let PostsController = class PostsController {
         await this.postsService.sharePost(id);
         return { message: 'Post compartilhado com sucesso' };
     }
+    async savePost(postId, req) {
+        await this.postsService.savePost(postId, req.user.userId);
+        return { message: 'Post salvo com sucesso' };
+    }
+    async unsavePost(postId, req) {
+        await this.postsService.unsavePost(postId, req.user.userId);
+    }
+    async hasUserSavedPost(postId, req) {
+        const saved = await this.postsService.hasUserSavedPost(postId, req.user.userId);
+        return { saved };
+    }
+    async getSavedPosts(req, page, limit) {
+        return this.postsService.getSavedPosts(req.user.userId, page, limit);
+    }
 };
 exports.PostsController = PostsController;
 __decorate([
@@ -328,6 +342,62 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "sharePost", null);
+__decorate([
+    (0, common_1.Post)('posts/:id/save'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, swagger_1.ApiOperation)({ summary: 'Salvar um post' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Post salvo com sucesso' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Post já está salvo' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Post não encontrado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "savePost", null);
+__decorate([
+    (0, common_1.Delete)('posts/:id/save'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    (0, swagger_1.ApiOperation)({ summary: 'Remover post dos salvos' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Post removido dos salvos' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Post não está salvo' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "unsavePost", null);
+__decorate([
+    (0, common_1.Get)('posts/:id/saved'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Verificar se usuário salvou o post' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Status retornado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "hasUserSavedPost", null);
+__decorate([
+    (0, common_1.Get)('posts/saved/list'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar posts salvos do usuário' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Lista de posts salvos' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "getSavedPosts", null);
 exports.PostsController = PostsController = __decorate([
     (0, swagger_1.ApiTags)('posts'),
     (0, common_1.Controller)(),

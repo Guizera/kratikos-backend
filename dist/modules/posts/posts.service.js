@@ -18,11 +18,13 @@ const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const post_entity_1 = require("./entities/post.entity");
 const post_like_entity_1 = require("./entities/post-like.entity");
+const saved_post_entity_1 = require("./entities/saved-post.entity");
 const location_dto_1 = require("./dto/location.dto");
 let PostsService = class PostsService {
-    constructor(postRepository, postLikeRepository) {
+    constructor(postRepository, postLikeRepository, savedPostRepository) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
+        this.savedPostRepository = savedPostRepository;
     }
     async create(createPostDto, authorId) {
         const { tags, location, scope, ...postData } = createPostDto;
@@ -88,7 +90,18 @@ let PostsService = class PostsService {
             order: { createdAt: 'DESC' },
             skip: (page - 1) * limit,
             take: limit,
-            relations: ['author', 'category', 'tags'],
+            relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
+        });
+        data.forEach((post) => {
+            if (post.poll) {
+                console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+                console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+                if (post.poll.options) {
+                    post.poll.options.forEach((opt, i) => {
+                        console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+                    });
+                }
+            }
         });
         return { data, total };
     }
@@ -110,6 +123,17 @@ let PostsService = class PostsService {
             take: limit,
             relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
         });
+        data.forEach((post) => {
+            if (post.poll) {
+                console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+                console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+                if (post.poll.options) {
+                    post.poll.options.forEach((opt, i) => {
+                        console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+                    });
+                }
+            }
+        });
         return {
             data,
             total,
@@ -124,6 +148,17 @@ let PostsService = class PostsService {
             skip: (page - 1) * limit,
             take: limit,
             relations: ['author', 'category', 'tags', 'poll', 'poll.options'],
+        });
+        data.forEach((post) => {
+            if (post.poll) {
+                console.log('🔍 Post:', post.id, '| Poll:', post.poll.id);
+                console.log('   📊 Options no backend:', post.poll.options?.length || 0);
+                if (post.poll.options) {
+                    post.poll.options.forEach((opt, i) => {
+                        console.log(`   Opção ${i}: ${opt.content} (${opt.votesCount} votos)`);
+                    });
+                }
+            }
         });
         return {
             data,
@@ -230,13 +265,56 @@ let PostsService = class PostsService {
         }
         await this.postRepository.increment({ id: postId }, 'sharesCount', 1);
     }
+    async savePost(postId, userId) {
+        const post = await this.postRepository.findOne({ where: { id: postId } });
+        if (!post) {
+            throw new common_1.NotFoundException('Post não encontrado');
+        }
+        const existingSave = await this.savedPostRepository.findOne({
+            where: { postId, userId },
+        });
+        if (existingSave) {
+            throw new common_1.BadRequestException('Post já está salvo');
+        }
+        const savedPost = this.savedPostRepository.create({ postId, userId });
+        await this.savedPostRepository.save(savedPost);
+    }
+    async unsavePost(postId, userId) {
+        const savedPost = await this.savedPostRepository.findOne({
+            where: { postId, userId },
+        });
+        if (!savedPost) {
+            throw new common_1.NotFoundException('Post não está salvo');
+        }
+        await this.savedPostRepository.remove(savedPost);
+    }
+    async hasUserSavedPost(postId, userId) {
+        const savedPost = await this.savedPostRepository.findOne({
+            where: { postId, userId },
+        });
+        return !!savedPost;
+    }
+    async getSavedPosts(userId, page = 1, limit = 20) {
+        const skip = (page - 1) * limit;
+        const [savedPosts, total] = await this.savedPostRepository.findAndCount({
+            where: { userId },
+            relations: ['post', 'post.author', 'post.category'],
+            order: { savedAt: 'DESC' },
+            skip,
+            take: limit,
+        });
+        const posts = savedPosts.map(sp => sp.post);
+        return { posts, total };
+    }
 };
 exports.PostsService = PostsService;
 exports.PostsService = PostsService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(post_entity_1.Post)),
     __param(1, (0, typeorm_1.InjectRepository)(post_like_entity_1.PostLike)),
+    __param(2, (0, typeorm_1.InjectRepository)(saved_post_entity_1.SavedPost)),
     __metadata("design:paramtypes", [typeorm_2.Repository,
+        typeorm_2.Repository,
         typeorm_2.Repository])
 ], PostsService);
 //# sourceMappingURL=posts.service.js.map

@@ -13,12 +13,13 @@ const posts_service_1 = require("./posts.service");
 const posts_controller_1 = require("./posts.controller");
 const post_entity_1 = require("./entities/post.entity");
 const post_like_entity_1 = require("./entities/post-like.entity");
+const saved_post_entity_1 = require("./entities/saved-post.entity");
 let PostsModule = class PostsModule {
 };
 exports.PostsModule = PostsModule;
 exports.PostsModule = PostsModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([post_entity_1.Post, post_like_entity_1.PostLike])],
+        imports: [typeorm_1.TypeOrmModule.forFeature([post_entity_1.Post, post_like_entity_1.PostLike, saved_post_entity_1.SavedPost])],
         controllers: [posts_controller_1.PostsController],
         providers: [posts_service_1.PostsService],
         exports: [posts_service_1.PostsService],
