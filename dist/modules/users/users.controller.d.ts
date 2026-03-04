@@ -10,4 +10,23 @@ export declare class UsersController {
     findOne(id: string): Promise<User>;
     update(id: string, updateUserDto: UpdateUserDto): Promise<User>;
     remove(id: string): Promise<void>;
+    updateCpf(req: any, body: {
+        cpf: string;
+    }): Promise<{
+        message: string;
+        verificationLevel: number;
+    }>;
+    removeCpf(req: any): Promise<void>;
+    getVerificationInfo(req: any): Promise<{
+        verificationLevel: number;
+        levelName: string;
+        documentVerified: boolean;
+        verifiedAt: Date | null;
+        benefits: string[];
+        nextLevelInfo?: {
+            level: number;
+            name: string;
+            requirements: string[];
+        };
+    }>;
 }

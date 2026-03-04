@@ -25,6 +25,7 @@ export declare class Post {
     likesCount: number;
     commentsCount: number;
     sharesCount: number;
+    repostsCount: number;
     scope: PostScope;
     locationLat: number;
     locationLng: number;

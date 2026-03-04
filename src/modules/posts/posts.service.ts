@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { Post } from './entities/post.entity';
 import { PostLike } from './entities/post-like.entity';
 import { SavedPost } from './entities/saved-post.entity';
+import { Repost } from './entities/repost.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostScope } from './dto/location.dto';
@@ -17,6 +18,8 @@ export class PostsService {
     private readonly postLikeRepository: Repository<PostLike>,
     @InjectRepository(SavedPost)
     private readonly savedPostRepository: Repository<SavedPost>,
+    @InjectRepository(Repost)
+    private readonly repostRepository: Repository<Repost>,
   ) {}
 
   async create(createPostDto: CreatePostDto, authorId: string): Promise<Post> {
@@ -410,6 +413,86 @@ export class PostsService {
     });
 
     const posts = savedPosts.map(sp => sp.post);
+
+    return { posts, total };
+  }
+
+  // ========================================================================
+  // REPOSTS
+  // ========================================================================
+
+  async repostPost(postId: string, userId: string): Promise<void> {
+    // Verificar se post existe
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+    if (!post) {
+      throw new NotFoundException('Post não encontrado');
+    }
+
+    // Verificar se usuário está tentando repostar seu próprio post
+    if (post.authorId === userId) {
+      throw new BadRequestException('Você não pode repostar seu próprio post');
+    }
+
+    // Verificar se já repostou
+    const existingRepost = await this.repostRepository.findOne({
+      where: { originalPostId: postId, userId },
+    });
+
+    if (existingRepost) {
+      throw new BadRequestException('Você já repostou este post');
+    }
+
+    // Criar repost
+    const repost = this.repostRepository.create({
+      originalPostId: postId,
+      userId,
+    });
+    await this.repostRepository.save(repost);
+
+    // Incrementar contador de reposts
+    await this.postRepository.increment({ id: postId }, 'repostsCount', 1);
+  }
+
+  async unrepostPost(postId: string, userId: string): Promise<void> {
+    const repost = await this.repostRepository.findOne({
+      where: { originalPostId: postId, userId },
+    });
+
+    if (!repost) {
+      throw new NotFoundException('Repost não encontrado');
+    }
+
+    // Remover repost
+    await this.repostRepository.remove(repost);
+
+    // Decrementar contador de reposts
+    await this.postRepository.decrement({ id: postId }, 'repostsCount', 1);
+  }
+
+  async hasUserRepostedPost(postId: string, userId: string): Promise<boolean> {
+    const repost = await this.repostRepository.findOne({
+      where: { originalPostId: postId, userId },
+    });
+    return !!repost;
+  }
+
+  async getUserReposts(
+    userId: string,
+    page: number = 1,
+    limit: number = 20,
+  ): Promise<{ posts: Post[]; total: number }> {
+    const skip = (page - 1) * limit;
+
+    // Buscar reposts do usuário com o post original
+    const [reposts, total] = await this.repostRepository.findAndCount({
+      where: { userId },
+      relations: ['originalPost', 'originalPost.author', 'originalPost.category'],
+      order: { createdAt: 'DESC' },
+      skip,
+      take: limit,
+    });
+
+    const posts = reposts.map(repost => repost.originalPost);
 
     return { posts, total };
   }

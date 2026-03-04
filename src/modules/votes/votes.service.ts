@@ -4,6 +4,7 @@ import { Repository } from 'typeorm';
 import { PostVote, VoteType } from './entities/post-vote.entity';
 import { Post } from '../posts/entities/post.entity';
 import { CreateVoteDto, SkipVoteDto } from './dto/create-vote.dto';
+import { SimpleScoringService } from '../scoring/simple-scoring.service';
 
 @Injectable()
 export class VotesService {
@@ -14,6 +15,7 @@ export class VotesService {
     private readonly voteRepository: Repository<PostVote>,
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    private readonly scoringService: SimpleScoringService,
   ) {}
 
   /**
@@ -51,16 +53,26 @@ export class VotesService {
       }
     }
 
-    // Criar novo voto
+    // Calcular score e peso do usuário
+    const userScore = await this.scoringService.calculateUserScore(userId);
+    
+    // Criar novo voto com peso
     const newVote = this.voteRepository.create({
       userId,
       postId: post_id,
       voteType,
       deviceFingerprint: device_fingerprint ? JSON.stringify(device_fingerprint) : null,
+      voteWeight: userScore.weight,
+      userScore: userScore.finalScore,
+      calculatedAt: new Date(),
     });
 
     const saved = await this.voteRepository.save(newVote);
-    this.logger.log(`✅ Novo voto registrado: usuário ${userId} no post ${post_id} - ${voteType}`);
+    this.logger.log(`✅ Novo voto registrado: usuário ${userId} no post ${post_id} - ${voteType} (peso: ${userScore.weight})`);
+    
+    // Atualizar estatísticas do usuário
+    await this.scoringService.updateUserStats(userId);
+    
     return saved;
   }
 

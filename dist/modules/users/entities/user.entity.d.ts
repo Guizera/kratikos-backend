@@ -13,6 +13,13 @@ export declare class User {
     appleId: string;
     photoUrl: string;
     status: UserStatus;
+    cpfHash: string;
+    verificationLevel: number;
+    documentVerified: boolean;
+    documentVerifiedAt: Date;
+    totalVotes: number;
+    consistentVotingDays: number;
+    lastVoteAt: Date;
     createdAt: Date;
     updatedAt: Date;
     isActive(): boolean;

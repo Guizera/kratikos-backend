@@ -15,4 +15,20 @@ export declare class UsersService {
     findByGoogleId(googleId: string): Promise<User | null>;
     findByAppleId(appleId: string): Promise<User | null>;
     createSocialUser(userData: Partial<User>): Promise<User>;
+    private hashCpf;
+    private isValidCpf;
+    updateCpf(userId: string, cpf: string): Promise<void>;
+    getVerificationInfo(userId: string): Promise<{
+        verificationLevel: number;
+        levelName: string;
+        documentVerified: boolean;
+        verifiedAt: Date | null;
+        benefits: string[];
+        nextLevelInfo?: {
+            level: number;
+            name: string;
+            requirements: string[];
+        };
+    }>;
+    removeCpf(userId: string): Promise<void>;
 }

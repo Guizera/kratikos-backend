@@ -74,4 +74,15 @@ export declare class PostsController {
         posts: import("./entities/post.entity").Post[];
         total: number;
     }>;
+    repostPost(postId: string, req: any): Promise<{
+        message: string;
+    }>;
+    unrepostPost(postId: string, req: any): Promise<void>;
+    isPostReposted(postId: string, req: any): Promise<{
+        hasReposted: boolean;
+    }>;
+    getUserReposts(req: any, page: number, limit: number): Promise<{
+        posts: import("./entities/post.entity").Post[];
+        total: number;
+    }>;
 }

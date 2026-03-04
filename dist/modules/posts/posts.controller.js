@@ -95,6 +95,21 @@ let PostsController = class PostsController {
     async getSavedPosts(req, page, limit) {
         return this.postsService.getSavedPosts(req.user.userId, page, limit);
     }
+    async repostPost(postId, req) {
+        await this.postsService.repostPost(postId, req.user.userId);
+        return { message: 'Post repostado com sucesso' };
+    }
+    async unrepostPost(postId, req) {
+        await this.postsService.unrepostPost(postId, req.user.userId);
+    }
+    async isPostReposted(postId, req) {
+        const hasReposted = await this.postsService.hasUserRepostedPost(postId, req.user.userId);
+        return { hasReposted };
+    }
+    async getUserReposts(req, page, limit) {
+        const result = await this.postsService.getUserReposts(req.user.userId, page, limit);
+        return result;
+    }
 };
 exports.PostsController = PostsController;
 __decorate([
@@ -398,6 +413,62 @@ __decorate([
     __metadata("design:paramtypes", [Object, Number, Number]),
     __metadata("design:returntype", Promise)
 ], PostsController.prototype, "getSavedPosts", null);
+__decorate([
+    (0, common_1.Post)('posts/:id/repost'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.CREATED),
+    (0, swagger_1.ApiOperation)({ summary: 'Repostar um post' }),
+    (0, swagger_1.ApiResponse)({ status: 201, description: 'Post repostado com sucesso' }),
+    (0, swagger_1.ApiResponse)({ status: 400, description: 'Post já foi repostado ou é seu próprio post' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Post não encontrado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "repostPost", null);
+__decorate([
+    (0, common_1.Delete)('posts/:id/repost'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, common_1.HttpCode)(common_1.HttpStatus.NO_CONTENT),
+    (0, swagger_1.ApiOperation)({ summary: 'Remover repost de um post' }),
+    (0, swagger_1.ApiResponse)({ status: 204, description: 'Repost removido' }),
+    (0, swagger_1.ApiResponse)({ status: 404, description: 'Repost não encontrado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "unrepostPost", null);
+__decorate([
+    (0, common_1.Get)('posts/:id/reposted'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Verificar se um post foi repostado pelo usuário' }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Status de repost retornado' }),
+    __param(0, (0, common_1.Param)('id', common_1.ParseUUIDPipe)),
+    __param(1, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String, Object]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "isPostReposted", null);
+__decorate([
+    (0, common_1.Get)('posts/reposts/list'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiBearerAuth)(),
+    (0, swagger_1.ApiOperation)({ summary: 'Listar reposts do usuário' }),
+    (0, swagger_1.ApiQuery)({ name: 'page', required: false, type: Number }),
+    (0, swagger_1.ApiQuery)({ name: 'limit', required: false, type: Number }),
+    (0, swagger_1.ApiResponse)({ status: 200, description: 'Lista de reposts retornada' }),
+    __param(0, (0, common_1.Request)()),
+    __param(1, (0, common_1.Query)('page', new common_1.DefaultValuePipe(1), common_1.ParseIntPipe)),
+    __param(2, (0, common_1.Query)('limit', new common_1.DefaultValuePipe(20), common_1.ParseIntPipe)),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object, Number, Number]),
+    __metadata("design:returntype", Promise)
+], PostsController.prototype, "getUserReposts", null);
 exports.PostsController = PostsController = __decorate([
     (0, swagger_1.ApiTags)('posts'),
     (0, common_1.Controller)(),

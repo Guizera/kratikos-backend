@@ -352,5 +352,68 @@ export class PostsController {
   ) {
     return this.postsService.getSavedPosts(req.user.userId, page, limit);
   }
+
+  // ========================================================================
+  // REPOSTS
+  // ========================================================================
+
+  @Post('posts/:id/repost')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({ summary: 'Repostar um post' })
+  @ApiResponse({ status: 201, description: 'Post repostado com sucesso' })
+  @ApiResponse({ status: 400, description: 'Post já foi repostado ou é seu próprio post' })
+  @ApiResponse({ status: 404, description: 'Post não encontrado' })
+  async repostPost(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    await this.postsService.repostPost(postId, req.user.userId);
+    return { message: 'Post repostado com sucesso' };
+  }
+
+  @Delete('posts/:id/repost')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({ summary: 'Remover repost de um post' })
+  @ApiResponse({ status: 204, description: 'Repost removido' })
+  @ApiResponse({ status: 404, description: 'Repost não encontrado' })
+  async unrepostPost(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    await this.postsService.unrepostPost(postId, req.user.userId);
+  }
+
+  @Get('posts/:id/reposted')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Verificar se um post foi repostado pelo usuário' })
+  @ApiResponse({ status: 200, description: 'Status de repost retornado' })
+  async isPostReposted(
+    @Param('id', ParseUUIDPipe) postId: string,
+    @Request() req,
+  ) {
+    const hasReposted = await this.postsService.hasUserRepostedPost(postId, req.user.userId);
+    return { hasReposted };
+  }
+
+  @Get('posts/reposts/list')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Listar reposts do usuário' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Lista de reposts retornada' })
+  async getUserReposts(
+    @Request() req,
+    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
+    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+  ) {
+    const result = await this.postsService.getUserReposts(req.user.userId, page, limit);
+    return result;
+  }
 }
 

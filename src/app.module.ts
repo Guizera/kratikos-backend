@@ -13,6 +13,7 @@ import { NewsModule } from './modules/news/news.module';
 import { UploadModule } from './modules/upload/upload.module';
 import { SearchModule } from './modules/search/search.module';
 import { VotesModule } from './modules/votes/votes.module';
+import { ScoringModule } from './modules/scoring/scoring.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
@@ -63,6 +64,7 @@ import newsapiConfig from './config/newsapi.config';
     UploadModule,
     SearchModule,
     VotesModule,
+    ScoringModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -75,6 +75,10 @@ export class Post {
   @ApiProperty({ description: 'Número de compartilhamentos' })
   sharesCount: number;
 
+  @Column({ name: 'reposts_count', default: 0 })
+  @ApiProperty({ description: 'Número de reposts' })
+  repostsCount: number;
+
   @Column({
     type: 'enum',
     enum: PostScope,

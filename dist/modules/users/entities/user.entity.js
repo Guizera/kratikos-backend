@@ -71,6 +71,42 @@ __decorate([
     __metadata("design:type", String)
 ], User.prototype, "status", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'cpf_hash' }),
+    (0, class_transformer_1.Exclude)(),
+    (0, swagger_1.ApiProperty)({ description: 'Hash SHA-256 do CPF', required: false }),
+    __metadata("design:type", String)
+], User.prototype, "cpfHash", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'verification_level', default: 1 }),
+    (0, swagger_1.ApiProperty)({ description: 'Nível de verificação: 1=Básica, 2=Verificada, 3=Legal' }),
+    __metadata("design:type", Number)
+], User.prototype, "verificationLevel", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'document_verified', default: false }),
+    (0, swagger_1.ApiProperty)({ description: 'Se documento foi verificado' }),
+    __metadata("design:type", Boolean)
+], User.prototype, "documentVerified", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'document_verified_at' }),
+    (0, swagger_1.ApiProperty)({ description: 'Data da verificação', required: false }),
+    __metadata("design:type", Date)
+], User.prototype, "documentVerifiedAt", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'total_votes', default: 0 }),
+    (0, swagger_1.ApiProperty)({ description: 'Total de votos do usuário' }),
+    __metadata("design:type", Number)
+], User.prototype, "totalVotes", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ name: 'consistent_voting_days', default: 0 }),
+    (0, swagger_1.ApiProperty)({ description: 'Dias consecutivos votando' }),
+    __metadata("design:type", Number)
+], User.prototype, "consistentVotingDays", void 0);
+__decorate([
+    (0, typeorm_1.Column)({ nullable: true, name: 'last_vote_at' }),
+    (0, swagger_1.ApiProperty)({ description: 'Data do último voto', required: false }),
+    __metadata("design:type", Date)
+], User.prototype, "lastVoteAt", void 0);
+__decorate([
     (0, typeorm_1.CreateDateColumn)({ name: 'created_at' }),
     (0, swagger_1.ApiProperty)({ description: 'Data de criação' }),
     __metadata("design:type", Date)

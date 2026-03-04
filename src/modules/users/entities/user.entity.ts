@@ -47,6 +47,35 @@ export class User {
   @ApiProperty({ description: 'Status do usuário', enum: UserStatus })
   status: UserStatus;
 
+  @Column({ nullable: true, name: 'cpf_hash' })
+  @Exclude()
+  @ApiProperty({ description: 'Hash SHA-256 do CPF', required: false })
+  cpfHash: string;
+
+  @Column({ name: 'verification_level', default: 1 })
+  @ApiProperty({ description: 'Nível de verificação: 1=Básica, 2=Verificada, 3=Legal' })
+  verificationLevel: number;
+
+  @Column({ name: 'document_verified', default: false })
+  @ApiProperty({ description: 'Se documento foi verificado' })
+  documentVerified: boolean;
+
+  @Column({ nullable: true, name: 'document_verified_at' })
+  @ApiProperty({ description: 'Data da verificação', required: false })
+  documentVerifiedAt: Date;
+
+  @Column({ name: 'total_votes', default: 0 })
+  @ApiProperty({ description: 'Total de votos do usuário' })
+  totalVotes: number;
+
+  @Column({ name: 'consistent_voting_days', default: 0 })
+  @ApiProperty({ description: 'Dias consecutivos votando' })
+  consistentVotingDays: number;
+
+  @Column({ nullable: true, name: 'last_vote_at' })
+  @ApiProperty({ description: 'Data do último voto', required: false })
+  lastVoteAt: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   @ApiProperty({ description: 'Data de criação' })
   createdAt: Date;

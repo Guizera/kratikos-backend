@@ -50,6 +50,7 @@ const common_1 = require("@nestjs/common");
 const typeorm_1 = require("@nestjs/typeorm");
 const typeorm_2 = require("typeorm");
 const bcrypt = __importStar(require("bcrypt"));
+const crypto = __importStar(require("crypto"));
 const user_entity_1 = require("./entities/user.entity");
 let UsersService = class UsersService {
     constructor(usersRepository) {
@@ -115,6 +116,140 @@ let UsersService = class UsersService {
     async createSocialUser(userData) {
         const user = this.usersRepository.create(userData);
         return this.usersRepository.save(user);
+    }
+    hashCpf(cpf) {
+        const salt = process.env.CPF_SALT || 'kratikos_cpf_salt_change_in_production';
+        const cleanCpf = cpf.replace(/[^\d]/g, '');
+        if (cleanCpf.length !== 11) {
+            throw new common_1.BadRequestException('CPF deve ter 11 dígitos');
+        }
+        const hash = crypto
+            .createHash('sha256')
+            .update(`${cleanCpf}${salt}`)
+            .digest('hex');
+        return hash;
+    }
+    isValidCpf(cpf) {
+        const cleanCpf = cpf.replace(/[^\d]/g, '');
+        if (cleanCpf.length !== 11)
+            return false;
+        if (/^(\d)\1{10}$/.test(cleanCpf))
+            return false;
+        let sum = 0;
+        let remainder;
+        for (let i = 1; i <= 9; i++) {
+            sum += parseInt(cleanCpf.substring(i - 1, i)) * (11 - i);
+        }
+        remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11)
+            remainder = 0;
+        if (remainder !== parseInt(cleanCpf.substring(9, 10)))
+            return false;
+        sum = 0;
+        for (let i = 1; i <= 10; i++) {
+            sum += parseInt(cleanCpf.substring(i - 1, i)) * (12 - i);
+        }
+        remainder = (sum * 10) % 11;
+        if (remainder === 10 || remainder === 11)
+            remainder = 0;
+        if (remainder !== parseInt(cleanCpf.substring(10, 11)))
+            return false;
+        return true;
+    }
+    async updateCpf(userId, cpf) {
+        if (!this.isValidCpf(cpf)) {
+            throw new common_1.BadRequestException('CPF inválido');
+        }
+        const cpfHash = this.hashCpf(cpf);
+        const existingUser = await this.usersRepository.findOne({
+            where: { cpfHash },
+        });
+        if (existingUser && existingUser.id !== userId) {
+            throw new common_1.BadRequestException('CPF já cadastrado em outra conta');
+        }
+        await this.usersRepository.update(userId, {
+            cpfHash,
+            verificationLevel: 2,
+            documentVerified: true,
+            documentVerifiedAt: new Date(),
+        });
+    }
+    async getVerificationInfo(userId) {
+        const user = await this.usersRepository.findOne({
+            where: { id: userId },
+            select: ['verificationLevel', 'documentVerified', 'documentVerifiedAt'],
+        });
+        if (!user) {
+            throw new common_1.NotFoundException('Usuário não encontrado');
+        }
+        const levels = {
+            1: {
+                name: 'Básica',
+                benefits: [
+                    'Votar em enquetes',
+                    'Criar posts básicos',
+                    'Comentar e interagir',
+                    'Peso de voto: 1.0x',
+                ],
+            },
+            2: {
+                name: 'Verificada',
+                benefits: [
+                    'Peso de voto aumentado (até 1.5x)',
+                    'Criar enquetes',
+                    'Badge de verificado no perfil',
+                    'Prioridade no suporte',
+                    'Maior confiança da comunidade',
+                ],
+            },
+            3: {
+                name: 'Legal/Corporativa',
+                benefits: [
+                    'Peso de voto máximo (até 2.0x)',
+                    'Criar conteúdo comercial',
+                    'Acesso a dashboard B2B (futuro)',
+                    'API access (futuro)',
+                    'Selo corporativo',
+                ],
+            },
+        };
+        const level = levels[user.verificationLevel] || levels[1];
+        let nextLevelInfo = undefined;
+        if (user.verificationLevel === 1) {
+            nextLevelInfo = {
+                level: 2,
+                name: 'Verificada',
+                requirements: [
+                    'Adicionar CPF válido',
+                ],
+            };
+        }
+        else if (user.verificationLevel === 2) {
+            nextLevelInfo = {
+                level: 3,
+                name: 'Legal/Corporativa',
+                requirements: [
+                    'Validação de CNPJ ou documento legal',
+                    'Entre em contato com suporte',
+                ],
+            };
+        }
+        return {
+            verificationLevel: user.verificationLevel,
+            levelName: level.name,
+            documentVerified: user.documentVerified,
+            verifiedAt: user.documentVerifiedAt,
+            benefits: level.benefits,
+            nextLevelInfo,
+        };
+    }
+    async removeCpf(userId) {
+        await this.usersRepository.update(userId, {
+            cpfHash: null,
+            verificationLevel: 1,
+            documentVerified: false,
+            documentVerifiedAt: null,
+        });
     }
 };
 exports.UsersService = UsersService;

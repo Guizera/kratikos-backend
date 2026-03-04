@@ -102,6 +102,11 @@ __decorate([
     __metadata("design:type", Number)
 ], Post.prototype, "sharesCount", void 0);
 __decorate([
+    (0, typeorm_1.Column)({ name: 'reposts_count', default: 0 }),
+    (0, swagger_1.ApiProperty)({ description: 'Número de reposts' }),
+    __metadata("design:type", Number)
+], Post.prototype, "repostsCount", void 0);
+__decorate([
     (0, typeorm_1.Column)({
         type: 'enum',
         enum: location_dto_1.PostScope,

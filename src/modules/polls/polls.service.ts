@@ -8,6 +8,7 @@ import { CreatePollDto } from './dto/create-poll.dto';
 import { VotePollDto } from './dto/vote-poll.dto';
 import { Post, PostType } from '../posts/entities/post.entity';
 import { PostScope } from '../posts/dto/location.dto';
+import { SimpleScoringService } from '../scoring/simple-scoring.service';
 
 @Injectable()
 export class PollsService {
@@ -20,6 +21,7 @@ export class PollsService {
     private readonly pollVoteRepository: Repository<PollVote>,
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    private readonly scoringService: SimpleScoringService,
   ) {}
 
   async create(createPollDto: CreatePollDto, authorId: string): Promise<Poll> {
@@ -155,6 +157,14 @@ export class PollsService {
       throw new BadRequestException('Opção inválida para esta enquete');
     }
 
+    // Calcular score e peso do usuário
+    const userScore = await this.scoringService.calculateUserScore(userId);
+    console.log(`📊 Score calculado para usuário ${userId}:`, {
+      finalScore: userScore.finalScore,
+      weight: userScore.weight,
+      verificationBonus: userScore.verificationBonus,
+    });
+
     // Verificar se usuário já votou
     const existingVote = await this.pollVoteRepository.findOne({
       where: { pollId, userId },
@@ -162,28 +172,38 @@ export class PollsService {
 
     if (existingVote) {
       // Se já votou, atualizar voto
-      // Decrementar contador da opção antiga
+      // Decrementar contador da opção antiga (usando peso anterior)
+      const oldWeight = existingVote.voteWeight || 1.0;
       await this.pollOptionRepository.decrement(
         { id: existingVote.optionId },
         'votesCount',
-        1,
+        oldWeight,
       );
 
-      // Atualizar voto
+      // Atualizar voto com novo peso
       existingVote.optionId = optionId;
+      existingVote.voteWeight = userScore.weight;
+      existingVote.userScore = userScore.finalScore;
+      existingVote.calculatedAt = new Date();
       await this.pollVoteRepository.save(existingVote);
     } else {
-      // Criar novo voto
+      // Criar novo voto com peso
       const vote = this.pollVoteRepository.create({
         pollId,
         userId,
         optionId,
+        voteWeight: userScore.weight,
+        userScore: userScore.finalScore,
+        calculatedAt: new Date(),
       });
       await this.pollVoteRepository.save(vote);
     }
 
-    // Incrementar contador da opção escolhida
-    await this.pollOptionRepository.increment({ id: optionId }, 'votesCount', 1);
+    // Incrementar contador da opção escolhida (com peso)
+    await this.pollOptionRepository.increment({ id: optionId }, 'votesCount', userScore.weight);
+    
+    // Atualizar estatísticas do usuário
+    await this.scoringService.updateUserStats(userId);
   }
 
   async removeVote(pollId: string, userId: string): Promise<void> {

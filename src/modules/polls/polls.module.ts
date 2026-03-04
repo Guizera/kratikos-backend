@@ -6,9 +6,13 @@ import { Poll } from './entities/poll.entity';
 import { PollOption } from './entities/poll-option.entity';
 import { PollVote } from './entities/poll-vote.entity';
 import { Post } from '../posts/entities/post.entity';
+import { ScoringModule } from '../scoring/scoring.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Poll, PollOption, PollVote, Post])],
+  imports: [
+    TypeOrmModule.forFeature([Poll, PollOption, PollVote, Post]),
+    ScoringModule,
+  ],
   controllers: [PollsController],
   providers: [PollsService],
   exports: [PollsService],

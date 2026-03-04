@@ -23,11 +23,13 @@ __decorate([
 ], PollOption.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => poll_entity_1.Poll, poll => poll.options),
+    (0, typeorm_1.JoinColumn)({ name: 'poll_id' }),
     (0, swagger_1.ApiProperty)({ description: 'Enquete relacionada' }),
     __metadata("design:type", poll_entity_1.Poll)
 ], PollOption.prototype, "poll", void 0);
 __decorate([
-    (0, typeorm_1.Column)({ name: 'poll_id' }),
+    (0, typeorm_1.Column)({ name: 'poll_id', type: 'uuid' }),
+    (0, swagger_1.ApiProperty)({ description: 'ID da enquete' }),
     __metadata("design:type", String)
 ], PollOption.prototype, "pollId", void 0);
 __decorate([

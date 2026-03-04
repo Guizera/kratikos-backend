@@ -4,9 +4,13 @@ import { VotesController } from './votes.controller';
 import { VotesService } from './votes.service';
 import { PostVote } from './entities/post-vote.entity';
 import { Post } from '../posts/entities/post.entity';
+import { ScoringModule } from '../scoring/scoring.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([PostVote, Post])],
+  imports: [
+    TypeOrmModule.forFeature([PostVote, Post]),
+    ScoringModule,
+  ],
   controllers: [VotesController],
   providers: [VotesService],
   exports: [VotesService],
