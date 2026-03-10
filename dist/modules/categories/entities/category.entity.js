@@ -38,6 +38,7 @@ __decorate([
 ], Category.prototype, "iconUrl", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => post_entity_1.Post, post => post.category),
+    (0, swagger_1.ApiProperty)({ type: () => post_entity_1.Post, isArray: true, description: 'Posts da categoria' }),
     __metadata("design:type", Array)
 ], Category.prototype, "posts", void 0);
 __decorate([

@@ -17,7 +17,7 @@ export class Poll {
 
   @OneToOne(() => Post)
   @JoinColumn({ name: 'post_id' })
-  @ApiProperty({ description: 'Post relacionado' })
+  @ApiProperty({ type: () => Post, description: 'Post relacionado' })
   post: Post;
 
   @Column({ name: 'post_id' })
@@ -56,7 +56,7 @@ export class Poll {
   maxOptions: number;
 
   @OneToMany(() => PollOption, option => option.poll, { eager: true })
-  @ApiProperty({ description: 'Opções da enquete' })
+  @ApiProperty({ type: () => PollOption, isArray: true, description: 'Opções da enquete' })
   options: PollOption[];
 
   @CreateDateColumn({ name: 'created_at' })

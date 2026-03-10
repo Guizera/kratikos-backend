@@ -40,14 +40,17 @@ export class PollVote {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
+  @ApiProperty({ type: () => User, description: 'Usuário que votou' })
   user: User;
 
   @ManyToOne(() => Poll)
   @JoinColumn({ name: 'poll_id' })
+  @ApiProperty({ type: () => Poll, description: 'Enquete votada' })
   poll: Poll;
 
   @ManyToOne(() => PollOption)
   @JoinColumn({ name: 'option_id' })
+  @ApiProperty({ type: () => PollOption, description: 'Opção escolhida' })
   option: PollOption;
 }
 

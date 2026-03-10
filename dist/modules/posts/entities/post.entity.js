@@ -147,6 +147,7 @@ __decorate([
 ], Post.prototype, "locationCountry", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => comment_entity_1.Comment, comment => comment.post),
+    (0, swagger_1.ApiProperty)({ type: () => comment_entity_1.Comment, isArray: true, description: 'Comentários do post' }),
     __metadata("design:type", Array)
 ], Post.prototype, "comments", void 0);
 __decorate([

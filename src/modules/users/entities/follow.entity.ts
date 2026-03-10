@@ -26,7 +26,7 @@ export class Follow {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'follower_id' })
-  @ApiProperty({ description: 'Usuário que está seguindo' })
+  @ApiProperty({ type: () => User, description: 'Usuário que está seguindo' })
   follower: User;
 
   @Column({ name: 'following_id' })
@@ -35,7 +35,7 @@ export class Follow {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'following_id' })
-  @ApiProperty({ description: 'Usuário que está sendo seguido' })
+  @ApiProperty({ type: () => User, description: 'Usuário que está sendo seguido' })
   following: User;
 
   @CreateDateColumn({ name: 'created_at' })

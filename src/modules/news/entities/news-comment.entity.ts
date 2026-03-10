@@ -22,7 +22,7 @@ export class NewsComment {
 
   @ManyToOne(() => NewsArticle)
   @JoinColumn({ name: 'news_id' })
-  @ApiProperty({ description: 'Notícia comentada' })
+  @ApiProperty({ type: () => NewsArticle, description: 'Notícia comentada' })
   news: NewsArticle;
 
   @Column({ name: 'user_id' })
@@ -31,7 +31,7 @@ export class NewsComment {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Autor do comentário' })
+  @ApiProperty({ type: () => User, description: 'Autor do comentário' })
   user: User;
 
   @Column({ name: 'parent_comment_id', nullable: true })
@@ -40,11 +40,11 @@ export class NewsComment {
 
   @ManyToOne(() => NewsComment, { nullable: true })
   @JoinColumn({ name: 'parent_comment_id' })
-  @ApiProperty({ description: 'Comentário pai' })
+  @ApiProperty({ type: () => NewsComment, description: 'Comentário pai', required: false })
   parentComment: NewsComment | null;
 
   @OneToMany(() => NewsComment, comment => comment.parentComment)
-  @ApiProperty({ description: 'Respostas ao comentário' })
+  @ApiProperty({ type: () => NewsComment, isArray: true, description: 'Respostas ao comentário' })
   replies: NewsComment[];
 
   @Column({ type: 'text' })
@@ -61,11 +61,11 @@ export class NewsComment {
   commentType: NewsCommentType;
 
   @OneToMany(() => NewsCommentPollOption, option => option.comment)
-  @ApiProperty({ description: 'Opções da sub-enquete (se commentType = poll)' })
+  @ApiProperty({ type: () => NewsCommentPollOption, isArray: true, description: 'Opções da sub-enquete (se commentType = poll)' })
   pollOptions: NewsCommentPollOption[];
 
   @OneToMany(() => NewsCommentLike, like => like.comment)
-  @ApiProperty({ description: 'Curtidas no comentário' })
+  @ApiProperty({ type: () => NewsCommentLike, isArray: true, description: 'Curtidas no comentário' })
   likes: NewsCommentLike[];
 
   @Column({ name: 'likes_count', default: 0 })

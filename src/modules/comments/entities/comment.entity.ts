@@ -81,5 +81,6 @@ export class Comment {
   updatedAt: Date;
 
   @OneToMany(() => Comment, comment => comment.parent)
+  @ApiProperty({ type: () => Comment, isArray: true, description: 'Respostas a este comentário' })
   replies: Comment[];
 }

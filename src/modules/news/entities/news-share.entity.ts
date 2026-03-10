@@ -11,7 +11,7 @@ export class NewsShare {
 
   @ManyToOne(() => User, { onDelete: 'SET NULL', nullable: true })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que compartilhou (opcional)' })
+  @ApiProperty({ type: () => User, description: 'Usuário que compartilhou (opcional)', required: false })
   user: User;
 
   @Column({ name: 'user_id', nullable: true })
@@ -19,7 +19,7 @@ export class NewsShare {
 
   @ManyToOne(() => NewsArticle, news => news.shares, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'news_id' })
-  @ApiProperty({ description: 'Notícia compartilhada' })
+  @ApiProperty({ type: () => NewsArticle, description: 'Notícia compartilhada' })
   news: NewsArticle;
 
   @Column({ name: 'news_id' })

@@ -23,10 +23,12 @@ export class PostLike {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
+  @ApiProperty({ type: () => User, description: 'Usuário que curtiu' })
   user: User;
 
   @ManyToOne(() => Post)
   @JoinColumn({ name: 'post_id' })
+  @ApiProperty({ type: () => Post, description: 'Post curtido' })
   post: Post;
 }
 

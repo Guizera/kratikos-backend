@@ -12,7 +12,7 @@ export class NewsLike {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que curtiu' })
+  @ApiProperty({ type: () => User, description: 'Usuário que curtiu' })
   user: User;
 
   @Column({ name: 'user_id' })
@@ -20,7 +20,7 @@ export class NewsLike {
 
   @ManyToOne(() => NewsArticle, news => news.likes, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'news_id' })
-  @ApiProperty({ description: 'Notícia curtida' })
+  @ApiProperty({ type: () => NewsArticle, description: 'Notícia curtida' })
   news: NewsArticle;
 
   @Column({ name: 'news_id' })

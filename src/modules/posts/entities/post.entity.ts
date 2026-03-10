@@ -112,6 +112,7 @@ export class Post {
   locationCountry: string;
 
   @OneToMany(() => Comment, comment => comment.post)
+  @ApiProperty({ type: () => Comment, isArray: true, description: 'Comentários do post' })
   comments: Comment[];
 
   @ManyToMany(() => Tag)

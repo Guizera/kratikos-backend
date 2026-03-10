@@ -21,6 +21,7 @@ export class Category {
   iconUrl: string;
 
   @OneToMany(() => Post, post => post.category)
+  @ApiProperty({ type: () => Post, isArray: true, description: 'Posts da categoria' })
   posts: Post[];
 
   @CreateDateColumn({ name: 'created_at' })

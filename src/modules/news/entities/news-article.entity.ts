@@ -125,9 +125,11 @@ export class NewsArticle {
 
   // Relações
   @OneToMany(() => NewsLike, like => like.news)
+  @ApiProperty({ type: () => NewsLike, isArray: true, description: 'Curtidas na notícia' })
   likes: NewsLike[];
 
   @OneToMany(() => NewsShare, share => share.news)
+  @ApiProperty({ type: () => NewsShare, isArray: true, description: 'Compartilhamentos da notícia' })
   shares: NewsShare[];
 }
 

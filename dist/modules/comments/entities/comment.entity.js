@@ -110,6 +110,7 @@ __decorate([
 ], Comment.prototype, "updatedAt", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => Comment, comment => comment.parent),
+    (0, swagger_1.ApiProperty)({ type: () => Comment, isArray: true, description: 'Respostas a este comentário' }),
     __metadata("design:type", Array)
 ], Comment.prototype, "replies", void 0);
 exports.Comment = Comment = __decorate([

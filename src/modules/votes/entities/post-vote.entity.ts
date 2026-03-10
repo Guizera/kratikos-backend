@@ -18,7 +18,7 @@ export class PostVote {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que votou' })
+  @ApiProperty({ type: () => User, description: 'Usuário que votou' })
   user: User;
 
   @Column({ name: 'user_id' })
@@ -26,7 +26,7 @@ export class PostVote {
 
   @ManyToOne(() => Post, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'post_id' })
-  @ApiProperty({ description: 'Post votado' })
+  @ApiProperty({ type: () => Post, description: 'Post votado' })
   post: Post;
 
   @Column({ name: 'post_id' })

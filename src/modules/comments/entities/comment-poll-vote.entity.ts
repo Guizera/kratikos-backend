@@ -15,7 +15,7 @@ export class CommentPollVote {
 
   @ManyToOne(() => CommentPollOption, option => option.votes)
   @JoinColumn({ name: 'option_id' })
-  @ApiProperty({ description: 'Opção votada' })
+  @ApiProperty({ type: () => CommentPollOption, description: 'Opção votada' })
   option: CommentPollOption;
 
   @Column({ name: 'user_id' })
@@ -24,7 +24,7 @@ export class CommentPollVote {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que votou' })
+  @ApiProperty({ type: () => User, description: 'Usuário que votou' })
   user: User;
 
   @CreateDateColumn({ name: 'voted_at' })

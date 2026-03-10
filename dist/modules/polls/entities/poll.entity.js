@@ -36,7 +36,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.OneToOne)(() => post_entity_1.Post),
     (0, typeorm_1.JoinColumn)({ name: 'post_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'Post relacionado' }),
+    (0, swagger_1.ApiProperty)({ type: () => post_entity_1.Post, description: 'Post relacionado' }),
     __metadata("design:type", post_entity_1.Post)
 ], Poll.prototype, "post", void 0);
 __decorate([
@@ -84,7 +84,7 @@ __decorate([
 ], Poll.prototype, "maxOptions", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => poll_option_entity_1.PollOption, option => option.poll, { eager: true }),
-    (0, swagger_1.ApiProperty)({ description: 'Opções da enquete' }),
+    (0, swagger_1.ApiProperty)({ type: () => poll_option_entity_1.PollOption, isArray: true, description: 'Opções da enquete' }),
     __metadata("design:type", Array)
 ], Poll.prototype, "options", void 0);
 __decorate([

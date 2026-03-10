@@ -10,7 +10,7 @@ export class PollOption {
 
   @ManyToOne(() => Poll, poll => poll.options)
   @JoinColumn({ name: 'poll_id' })
-  @ApiProperty({ description: 'Enquete relacionada' })
+  @ApiProperty({ type: () => Poll, description: 'Enquete relacionada' })
   poll: Poll;
 
   @Column({ name: 'poll_id', type: 'uuid' })

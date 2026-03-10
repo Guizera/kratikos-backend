@@ -15,7 +15,7 @@ export class SavedPost {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que salvou o post' })
+  @ApiProperty({ type: () => User, description: 'Usuário que salvou o post' })
   user: User;
 
   @Column({ name: 'post_id' })
@@ -24,7 +24,7 @@ export class SavedPost {
 
   @ManyToOne(() => Post)
   @JoinColumn({ name: 'post_id' })
-  @ApiProperty({ description: 'Post salvo' })
+  @ApiProperty({ type: () => Post, description: 'Post salvo' })
   post: Post;
 
   @CreateDateColumn({ name: 'saved_at' })

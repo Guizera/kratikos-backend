@@ -15,7 +15,7 @@ export class NewsCommentLike {
 
   @ManyToOne(() => NewsComment, comment => comment.likes)
   @JoinColumn({ name: 'comment_id' })
-  @ApiProperty({ description: 'Comentário curtido' })
+  @ApiProperty({ type: () => NewsComment, description: 'Comentário curtido' })
   comment: NewsComment;
 
   @Column({ name: 'user_id' })
@@ -24,7 +24,7 @@ export class NewsCommentLike {
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que curtiu' })
+  @ApiProperty({ type: () => User, description: 'Usuário que curtiu' })
   user: User;
 
   @CreateDateColumn({ name: 'liked_at' })

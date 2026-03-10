@@ -15,7 +15,7 @@ export class CommentPollOption {
 
   @ManyToOne(() => Comment, comment => comment.pollOptions)
   @JoinColumn({ name: 'comment_id' })
-  @ApiProperty({ description: 'Comentário da sub-enquete' })
+  @ApiProperty({ type: () => Comment, description: 'Comentário da sub-enquete' })
   comment: Comment;
 
   @Column({ name: 'option_text', length: 200 })
@@ -31,7 +31,7 @@ export class CommentPollOption {
   displayOrder: number;
 
   @OneToMany(() => CommentPollVote, vote => vote.option)
-  @ApiProperty({ description: 'Votos nesta opção' })
+  @ApiProperty({ type: () => CommentPollVote, isArray: true, description: 'Votos nesta opção' })
   votes: CommentPollVote[];
 
   @CreateDateColumn({ name: 'created_at' })

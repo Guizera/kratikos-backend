@@ -12,7 +12,7 @@ export class Repost {
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Usuário que fez o repost' })
+  @ApiProperty({ type: () => User, description: 'Usuário que fez o repost' })
   user: User;
 
   @Column({ name: 'user_id' })
@@ -20,7 +20,7 @@ export class Repost {
 
   @ManyToOne(() => Post, { nullable: false, onDelete: 'CASCADE' })
   @JoinColumn({ name: 'original_post_id' })
-  @ApiProperty({ description: 'Post original que foi repostado' })
+  @ApiProperty({ type: () => Post, description: 'Post original que foi repostado' })
   originalPost: Post;
 
   @Column({ name: 'original_post_id' })
