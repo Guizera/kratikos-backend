@@ -31,7 +31,7 @@ __decorate([
 ], Comment.prototype, "id", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => post_entity_1.Post, post => post.comments),
-    (0, swagger_1.ApiProperty)({ description: 'Post relacionado' }),
+    (0, swagger_1.ApiProperty)({ type: () => post_entity_1.Post, description: 'Post relacionado' }),
     __metadata("design:type", post_entity_1.Post)
 ], Comment.prototype, "post", void 0);
 __decorate([
@@ -41,7 +41,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: 'user_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'Autor do comentário', required: false }),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, description: 'Autor do comentário', required: false }),
     __metadata("design:type", user_entity_1.User)
 ], Comment.prototype, "user", void 0);
 __decorate([
@@ -51,7 +51,7 @@ __decorate([
 ], Comment.prototype, "userId", void 0);
 __decorate([
     (0, typeorm_1.ManyToOne)(() => Comment, { nullable: true }),
-    (0, swagger_1.ApiProperty)({ description: 'Comentário pai (em caso de resposta)' }),
+    (0, swagger_1.ApiProperty)({ type: () => Comment, description: 'Comentário pai (em caso de resposta)', required: false }),
     __metadata("design:type", Comment)
 ], Comment.prototype, "parent", void 0);
 __decorate([
@@ -75,12 +75,12 @@ __decorate([
 ], Comment.prototype, "commentType", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => comment_poll_option_entity_1.CommentPollOption, option => option.comment),
-    (0, swagger_1.ApiProperty)({ description: 'Opções da sub-enquete (se commentType = poll)' }),
+    (0, swagger_1.ApiProperty)({ type: () => comment_poll_option_entity_1.CommentPollOption, isArray: true, description: 'Opções da sub-enquete (se commentType = poll)' }),
     __metadata("design:type", Array)
 ], Comment.prototype, "pollOptions", void 0);
 __decorate([
     (0, typeorm_1.OneToMany)(() => comment_like_entity_1.CommentLike, like => like.comment),
-    (0, swagger_1.ApiProperty)({ description: 'Curtidas no comentário' }),
+    (0, swagger_1.ApiProperty)({ type: () => comment_like_entity_1.CommentLike, isArray: true, description: 'Curtidas no comentário' }),
     __metadata("design:type", Array)
 ], Comment.prototype, "likes", void 0);
 __decorate([

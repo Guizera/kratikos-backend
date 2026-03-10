@@ -36,7 +36,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.ManyToOne)(() => user_entity_1.User, { nullable: true }),
     (0, typeorm_1.JoinColumn)({ name: 'author_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'Autor do post' }),
+    (0, swagger_1.ApiProperty)({ type: () => user_entity_1.User, description: 'Autor do post', required: false }),
     __metadata("design:type", user_entity_1.User)
 ], Post.prototype, "author", void 0);
 __decorate([
@@ -46,7 +46,7 @@ __decorate([
 __decorate([
     (0, typeorm_1.ManyToOne)(() => category_entity_1.Category, category => category.posts),
     (0, typeorm_1.JoinColumn)({ name: 'category_id' }),
-    (0, swagger_1.ApiProperty)({ description: 'Categoria do post' }),
+    (0, swagger_1.ApiProperty)({ type: () => category_entity_1.Category, description: 'Categoria do post', required: false }),
     __metadata("design:type", category_entity_1.Category)
 ], Post.prototype, "category", void 0);
 __decorate([
@@ -156,12 +156,12 @@ __decorate([
         joinColumn: { name: 'post_id' },
         inverseJoinColumn: { name: 'tag_id' },
     }),
-    (0, swagger_1.ApiProperty)({ description: 'Tags do post' }),
+    (0, swagger_1.ApiProperty)({ type: () => tag_entity_1.Tag, isArray: true, description: 'Tags do post' }),
     __metadata("design:type", Array)
 ], Post.prototype, "tags", void 0);
 __decorate([
     (0, typeorm_1.OneToOne)(() => poll_entity_1.Poll, poll => poll.post, { nullable: true }),
-    (0, swagger_1.ApiProperty)({ description: 'Enquete relacionada (se o post for tipo enquete)' }),
+    (0, swagger_1.ApiProperty)({ type: () => poll_entity_1.Poll, description: 'Enquete relacionada (se o post for tipo enquete)', required: false }),
     __metadata("design:type", poll_entity_1.Poll)
 ], Post.prototype, "poll", void 0);
 __decorate([

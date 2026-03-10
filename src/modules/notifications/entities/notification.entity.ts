@@ -36,7 +36,7 @@ export class Notification {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'recipient_id' })
-  @ApiProperty({ description: 'Usuário que recebe a notificação' })
+  @ApiProperty({ type: () => User, description: 'Usuário que recebe a notificação' })
   recipient: User;
 
   @Column({ name: 'sender_id' })
@@ -45,7 +45,7 @@ export class Notification {
 
   @ManyToOne(() => User, { onDelete: 'CASCADE' })
   @JoinColumn({ name: 'sender_id' })
-  @ApiProperty({ description: 'Usuário que gerou a ação' })
+  @ApiProperty({ type: () => User, description: 'Usuário que gerou a ação' })
   sender: User;
 
   @Column({
@@ -61,7 +61,7 @@ export class Notification {
 
   @ManyToOne(() => Post, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'post_id' })
-  @ApiProperty({ description: 'Post relacionado (opcional)' })
+  @ApiProperty({ type: () => Post, description: 'Post relacionado (opcional)', required: false })
   post: Post | null;
 
   @Column({ name: 'comment_id', nullable: true })
@@ -70,7 +70,7 @@ export class Notification {
 
   @ManyToOne(() => Comment, { onDelete: 'CASCADE', nullable: true })
   @JoinColumn({ name: 'comment_id' })
-  @ApiProperty({ description: 'Comentário relacionado (opcional)' })
+  @ApiProperty({ type: () => Comment, description: 'Comentário relacionado (opcional)', required: false })
   comment: Comment | null;
 
   @Column({ nullable: true, type: 'text' })

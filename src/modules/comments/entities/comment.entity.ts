@@ -17,7 +17,7 @@ export class Comment {
   id: string;
 
   @ManyToOne(() => Post, post => post.comments)
-  @ApiProperty({ description: 'Post relacionado' })
+  @ApiProperty({ type: () => Post, description: 'Post relacionado' })
   post: Post;
 
   @Column({ name: 'post_id' })
@@ -25,7 +25,7 @@ export class Comment {
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'user_id' })
-  @ApiProperty({ description: 'Autor do comentário', required: false })
+  @ApiProperty({ type: () => User, description: 'Autor do comentário', required: false })
   user: User;
 
   @Column({ name: 'user_id', nullable: true })
@@ -33,7 +33,7 @@ export class Comment {
   userId: string;
 
   @ManyToOne(() => Comment, { nullable: true })
-  @ApiProperty({ description: 'Comentário pai (em caso de resposta)' })
+  @ApiProperty({ type: () => Comment, description: 'Comentário pai (em caso de resposta)', required: false })
   parent: Comment;
 
   @Column({ name: 'parent_id', nullable: true })
@@ -53,11 +53,11 @@ export class Comment {
   commentType: CommentType;
 
   @OneToMany(() => CommentPollOption, option => option.comment)
-  @ApiProperty({ description: 'Opções da sub-enquete (se commentType = poll)' })
+  @ApiProperty({ type: () => CommentPollOption, isArray: true, description: 'Opções da sub-enquete (se commentType = poll)' })
   pollOptions: CommentPollOption[];
 
   @OneToMany(() => CommentLike, like => like.comment)
-  @ApiProperty({ description: 'Curtidas no comentário' })
+  @ApiProperty({ type: () => CommentLike, isArray: true, description: 'Curtidas no comentário' })
   likes: CommentLike[];
 
   @Column({ name: 'likes_count', default: 0 })

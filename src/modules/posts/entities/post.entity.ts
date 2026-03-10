@@ -22,7 +22,7 @@ export class Post {
 
   @ManyToOne(() => User, { nullable: true })
   @JoinColumn({ name: 'author_id' })
-  @ApiProperty({ description: 'Autor do post' })
+  @ApiProperty({ type: () => User, description: 'Autor do post', required: false })
   author: User;
 
   @Column({ name: 'author_id', nullable: true })
@@ -30,7 +30,7 @@ export class Post {
 
   @ManyToOne(() => Category, category => category.posts)
   @JoinColumn({ name: 'category_id' })
-  @ApiProperty({ description: 'Categoria do post' })
+  @ApiProperty({ type: () => Category, description: 'Categoria do post', required: false })
   category: Category;
 
   @Column({ name: 'category_id', nullable: true })
@@ -120,11 +120,11 @@ export class Post {
     joinColumn: { name: 'post_id' },
     inverseJoinColumn: { name: 'tag_id' },
   })
-  @ApiProperty({ description: 'Tags do post' })
+  @ApiProperty({ type: () => Tag, isArray: true, description: 'Tags do post' })
   tags: Tag[];
 
   @OneToOne(() => Poll, poll => poll.post, { nullable: true })
-  @ApiProperty({ description: 'Enquete relacionada (se o post for tipo enquete)' })
+  @ApiProperty({ type: () => Poll, description: 'Enquete relacionada (se o post for tipo enquete)', required: false })
   poll: Poll | null;
 
   @CreateDateColumn({ name: 'created_at' })
