@@ -21,12 +21,15 @@ const post_like_entity_1 = require("./entities/post-like.entity");
 const saved_post_entity_1 = require("./entities/saved-post.entity");
 const repost_entity_1 = require("./entities/repost.entity");
 const location_dto_1 = require("./dto/location.dto");
+const notifications_service_1 = require("../notifications/notifications.service");
+const notification_entity_1 = require("../notifications/entities/notification.entity");
 let PostsService = class PostsService {
-    constructor(postRepository, postLikeRepository, savedPostRepository, repostRepository) {
+    constructor(postRepository, postLikeRepository, savedPostRepository, repostRepository, notificationsService) {
         this.postRepository = postRepository;
         this.postLikeRepository = postLikeRepository;
         this.savedPostRepository = savedPostRepository;
         this.repostRepository = repostRepository;
+        this.notificationsService = notificationsService;
     }
     async create(createPostDto, authorId) {
         const { tags, location, scope, ...postData } = createPostDto;
@@ -252,6 +255,12 @@ let PostsService = class PostsService {
         const like = this.postLikeRepository.create({ postId, userId });
         await this.postLikeRepository.save(like);
         await this.postRepository.increment({ id: postId }, 'likesCount', 1);
+        await this.notificationsService.create({
+            recipientId: post.authorId,
+            senderId: userId,
+            type: notification_entity_1.NotificationType.POST_LIKE,
+            postId,
+        });
     }
     async unlikePost(postId, userId) {
         const like = await this.postLikeRepository.findOne({
@@ -337,6 +346,12 @@ let PostsService = class PostsService {
         });
         await this.repostRepository.save(repost);
         await this.postRepository.increment({ id: postId }, 'repostsCount', 1);
+        await this.notificationsService.create({
+            recipientId: post.authorId,
+            senderId: userId,
+            type: notification_entity_1.NotificationType.POST_REPOST,
+            postId,
+        });
     }
     async unrepostPost(postId, userId) {
         const repost = await this.repostRepository.findOne({
@@ -377,6 +392,7 @@ exports.PostsService = PostsService = __decorate([
     __metadata("design:paramtypes", [typeorm_2.Repository,
         typeorm_2.Repository,
         typeorm_2.Repository,
-        typeorm_2.Repository])
+        typeorm_2.Repository,
+        notifications_service_1.NotificationsService])
 ], PostsService);
 //# sourceMappingURL=posts.service.js.map

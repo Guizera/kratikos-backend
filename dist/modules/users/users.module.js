@@ -15,12 +15,18 @@ const follows_service_1 = require("./follows.service");
 const follows_controller_1 = require("./follows.controller");
 const user_entity_1 = require("./entities/user.entity");
 const follow_entity_1 = require("./entities/follow.entity");
+const scoring_module_1 = require("../scoring/scoring.module");
+const notifications_module_1 = require("../notifications/notifications.module");
 let UsersModule = class UsersModule {
 };
 exports.UsersModule = UsersModule;
 exports.UsersModule = UsersModule = __decorate([
     (0, common_1.Module)({
-        imports: [typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, follow_entity_1.Follow])],
+        imports: [
+            typeorm_1.TypeOrmModule.forFeature([user_entity_1.User, follow_entity_1.Follow]),
+            scoring_module_1.ScoringModule,
+            (0, common_1.forwardRef)(() => notifications_module_1.NotificationsModule),
+        ],
         controllers: [users_controller_1.UsersController, follows_controller_1.FollowsController],
         providers: [users_service_1.UsersService, follows_service_1.FollowsService],
         exports: [users_service_1.UsersService, follows_service_1.FollowsService],

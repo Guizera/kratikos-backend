@@ -2,9 +2,11 @@ import { Repository } from 'typeorm';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SimpleScoringService } from '../scoring/simple-scoring.service';
 export declare class UsersService {
     private usersRepository;
-    constructor(usersRepository: Repository<User>);
+    private readonly scoringService;
+    constructor(usersRepository: Repository<User>, scoringService: SimpleScoringService);
     create(createUserDto: CreateUserDto): Promise<User>;
     findAll(): Promise<User[]>;
     findOne(id: string): Promise<User>;
@@ -31,4 +33,5 @@ export declare class UsersService {
         };
     }>;
     removeCpf(userId: string): Promise<void>;
+    getCurrentScore(userId: string): Promise<import("../scoring/simple-scoring.service").UserScore>;
 }

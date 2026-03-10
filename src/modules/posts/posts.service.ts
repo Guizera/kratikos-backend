@@ -8,6 +8,8 @@ import { Repost } from './entities/repost.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
 import { PostScope } from './dto/location.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class PostsService {
@@ -20,6 +22,7 @@ export class PostsService {
     private readonly savedPostRepository: Repository<SavedPost>,
     @InjectRepository(Repost)
     private readonly repostRepository: Repository<Repost>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async create(createPostDto: CreatePostDto, authorId: string): Promise<Post> {
@@ -311,6 +314,14 @@ export class PostsService {
 
     // Incrementar contador
     await this.postRepository.increment({ id: postId }, 'likesCount', 1);
+
+    // Criar notificação para o autor do post
+    await this.notificationsService.create({
+      recipientId: post.authorId,
+      senderId: userId,
+      type: NotificationType.POST_LIKE,
+      postId,
+    });
   }
 
   async unlikePost(postId: string, userId: string): Promise<void> {
@@ -451,6 +462,14 @@ export class PostsService {
 
     // Incrementar contador de reposts
     await this.postRepository.increment({ id: postId }, 'repostsCount', 1);
+
+    // Criar notificação para o autor do post
+    await this.notificationsService.create({
+      recipientId: post.authorId,
+      senderId: userId,
+      type: NotificationType.POST_REPOST,
+      postId,
+    });
   }
 
   async unrepostPost(postId: string, userId: string): Promise<void> {

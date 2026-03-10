@@ -5,12 +5,14 @@ import { SavedPost } from './entities/saved-post.entity';
 import { Repost } from './entities/repost.entity';
 import { CreatePostDto } from './dto/create-post.dto';
 import { UpdatePostDto } from './dto/update-post.dto';
+import { NotificationsService } from '../notifications/notifications.service';
 export declare class PostsService {
     private readonly postRepository;
     private readonly postLikeRepository;
     private readonly savedPostRepository;
     private readonly repostRepository;
-    constructor(postRepository: Repository<Post>, postLikeRepository: Repository<PostLike>, savedPostRepository: Repository<SavedPost>, repostRepository: Repository<Repost>);
+    private readonly notificationsService;
+    constructor(postRepository: Repository<Post>, postLikeRepository: Repository<PostLike>, savedPostRepository: Repository<SavedPost>, repostRepository: Repository<Repost>, notificationsService: NotificationsService);
     create(createPostDto: CreatePostDto, authorId: string): Promise<Post>;
     findAll(page?: number, limit?: number): Promise<{
         data: Post[];

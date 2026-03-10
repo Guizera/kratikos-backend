@@ -8,6 +8,8 @@ import { CommentLike } from './entities/comment-like.entity';
 import { Post } from '../posts/entities/post.entity';
 import { User } from '../users/entities/user.entity';
 import { CreateCommentDto } from './dto/create-comment.dto';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class CommentsService {
@@ -24,6 +26,7 @@ export class CommentsService {
     private readonly commentLikeRepository: Repository<CommentLike>,
     @InjectRepository(Post)
     private readonly postRepository: Repository<Post>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   // ========================================================================
@@ -86,6 +89,34 @@ export class CommentsService {
     await this.postRepository.increment({ id: postId }, 'commentsCount', 1);
 
     this.logger.log(`Comentário criado: ${savedComment.id} no post ${postId}`);
+
+    // Criar notificação
+    if (parentId) {
+      // É uma resposta a outro comentário
+      const parentComment = await this.commentRepository.findOne({
+        where: { id: parentId },
+      });
+      if (parentComment) {
+        await this.notificationsService.create({
+          recipientId: parentComment.userId,
+          senderId: userId,
+          type: NotificationType.REPLY_TO_COMMENT,
+          postId,
+          commentId: savedComment.id,
+          content: content?.substring(0, 100),
+        });
+      }
+    } else {
+      // É um comentário direto no post
+      await this.notificationsService.create({
+        recipientId: post.authorId,
+        senderId: userId,
+        type: NotificationType.COMMENT_ON_POST,
+        postId,
+        commentId: savedComment.id,
+        content: content?.substring(0, 100),
+      });
+    }
 
     // Recarregar com relações usando query builder para garantir que user seja carregado
     const commentWithUser = await this.commentRepository
@@ -250,6 +281,15 @@ export class CommentsService {
     await this.commentLikeRepository.save(like);
 
     this.logger.debug(`👍 Usuário ${userId} curtiu comentário ${commentId}`);
+
+    // Criar notificação para o autor do comentário
+    await this.notificationsService.create({
+      recipientId: comment.userId,
+      senderId: userId,
+      type: NotificationType.COMMENT_LIKE,
+      commentId,
+      postId: comment.postId,
+    });
   }
 
   async unlikeComment(commentId: string, userId: string): Promise<void> {

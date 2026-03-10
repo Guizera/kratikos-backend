@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { CommentsService } from './comments.service';
 import { CommentsController } from './comments.controller';
@@ -7,6 +7,7 @@ import { CommentPollOption } from './entities/comment-poll-option.entity';
 import { CommentPollVote } from './entities/comment-poll-vote.entity';
 import { CommentLike } from './entities/comment-like.entity';
 import { Post } from '../posts/entities/post.entity';
+import { NotificationsModule } from '../notifications/notifications.module';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { Post } from '../posts/entities/post.entity';
       CommentLike,
       Post,
     ]),
+    forwardRef(() => NotificationsModule),
   ],
   controllers: [CommentsController],
   providers: [CommentsService],

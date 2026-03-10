@@ -26,6 +26,7 @@ const upload_module_1 = require("./modules/upload/upload.module");
 const search_module_1 = require("./modules/search/search.module");
 const votes_module_1 = require("./modules/votes/votes.module");
 const scoring_module_1 = require("./modules/scoring/scoring.module");
+const notifications_module_1 = require("./modules/notifications/notifications.module");
 const database_config_1 = __importDefault(require("./config/database.config"));
 const jwt_config_1 = __importDefault(require("./config/jwt.config"));
 const app_config_1 = __importDefault(require("./config/app.config"));
@@ -77,6 +78,7 @@ exports.AppModule = AppModule = __decorate([
             search_module_1.SearchModule,
             votes_module_1.VotesModule,
             scoring_module_1.ScoringModule,
+            notifications_module_1.NotificationsModule,
         ],
         controllers: [app_controller_1.AppController],
         providers: [app_service_1.AppService],

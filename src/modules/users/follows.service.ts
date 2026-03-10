@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Follow } from './entities/follow.entity';
 import { User } from './entities/user.entity';
+import { NotificationsService } from '../notifications/notifications.service';
+import { NotificationType } from '../notifications/entities/notification.entity';
 
 @Injectable()
 export class FollowsService {
@@ -11,6 +13,7 @@ export class FollowsService {
     private followRepository: Repository<Follow>,
     @InjectRepository(User)
     private userRepository: Repository<User>,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   /**
@@ -46,7 +49,16 @@ export class FollowsService {
       followingId,
     });
 
-    return this.followRepository.save(follow);
+    const saved = await this.followRepository.save(follow);
+
+    // Criar notificação
+    await this.notificationsService.create({
+      recipientId: followingId,
+      senderId: followerId,
+      type: NotificationType.NEW_FOLLOWER,
+    });
+
+    return saved;
   }
 
   /**

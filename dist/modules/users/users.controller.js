@@ -52,6 +52,9 @@ let UsersController = class UsersController {
     async getVerificationInfo(req) {
         return await this.usersService.getVerificationInfo(req.user.userId);
     }
+    async getCurrentScore(req) {
+        return await this.usersService.getCurrentScore(req.user.userId);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -183,6 +186,30 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getVerificationInfo", null);
+__decorate([
+    (0, common_1.Get)('score/current'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Score e peso atual do usu?rio' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Score calculado retornado',
+        schema: {
+            type: 'object',
+            properties: {
+                baseScore: { type: 'number', example: 1.0 },
+                verificationBonus: { type: 'number', example: 0.3 },
+                historyScore: { type: 'number', example: 0.45 },
+                consistencyScore: { type: 'number', example: 0.8 },
+                finalScore: { type: 'number', example: 0.92 },
+                weight: { type: 'number', example: 1.35 },
+            },
+        },
+    }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getCurrentScore", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('users'),
     (0, common_1.Controller)('users'),

@@ -29,4 +29,5 @@ export declare class UsersController {
             requirements: string[];
         };
     }>;
+    getCurrentScore(req: any): Promise<import("../scoring/simple-scoring.service").UserScore>;
 }

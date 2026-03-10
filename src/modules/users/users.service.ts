@@ -6,12 +6,14 @@ import * as crypto from 'crypto';
 import { User } from './entities/user.entity';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { SimpleScoringService } from '../scoring/simple-scoring.service';
 
 @Injectable()
 export class UsersService {
   constructor(
     @InjectRepository(User)
     private usersRepository: Repository<User>,
+    private readonly scoringService: SimpleScoringService,
   ) {}
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -287,5 +289,12 @@ export class UsersService {
       documentVerified: false,
       documentVerifiedAt: null,
     });
+  }
+
+  /**
+   * Retorna o score atual do usuário
+   */
+  async getCurrentScore(userId: string) {
+    return await this.scoringService.calculateUserScore(userId);
   }
 }

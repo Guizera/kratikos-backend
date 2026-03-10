@@ -52,9 +52,11 @@ const typeorm_2 = require("typeorm");
 const bcrypt = __importStar(require("bcrypt"));
 const crypto = __importStar(require("crypto"));
 const user_entity_1 = require("./entities/user.entity");
+const simple_scoring_service_1 = require("../scoring/simple-scoring.service");
 let UsersService = class UsersService {
-    constructor(usersRepository) {
+    constructor(usersRepository, scoringService) {
         this.usersRepository = usersRepository;
+        this.scoringService = scoringService;
     }
     async create(createUserDto) {
         const existingUser = await this.usersRepository.findOne({
@@ -251,11 +253,15 @@ let UsersService = class UsersService {
             documentVerifiedAt: null,
         });
     }
+    async getCurrentScore(userId) {
+        return await this.scoringService.calculateUserScore(userId);
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([
     (0, common_1.Injectable)(),
     __param(0, (0, typeorm_1.InjectRepository)(user_entity_1.User)),
-    __metadata("design:paramtypes", [typeorm_2.Repository])
+    __metadata("design:paramtypes", [typeorm_2.Repository,
+        simple_scoring_service_1.SimpleScoringService])
 ], UsersService);
 //# sourceMappingURL=users.service.js.map

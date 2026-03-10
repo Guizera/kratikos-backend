@@ -143,4 +143,26 @@ export class UsersController {
   async getVerificationInfo(@Request() req) {
     return await this.usersService.getVerificationInfo(req.user.userId);
   }
+
+  @Get('score/current')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Score e peso atual do usu?rio' })
+  @ApiResponse({ 
+    status: 200,
+    description: 'Score calculado retornado',
+    schema: {
+      type: 'object',
+      properties: {
+        baseScore: { type: 'number', example: 1.0 },
+        verificationBonus: { type: 'number', example: 0.3 },
+        historyScore: { type: 'number', example: 0.45 },
+        consistencyScore: { type: 'number', example: 0.8 },
+        finalScore: { type: 'number', example: 0.92 },
+        weight: { type: 'number', example: 1.35 },
+      },
+    },
+  })
+  async getCurrentScore(@Request() req) {
+    return await this.usersService.getCurrentScore(req.user.userId);
+  }
 }
