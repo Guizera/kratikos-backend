@@ -15,6 +15,7 @@ import { SearchModule } from './modules/search/search.module';
 import { VotesModule } from './modules/votes/votes.module';
 import { ScoringModule } from './modules/scoring/scoring.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
+import { LeaderboardModule } from './modules/leaderboard/leaderboard.module';
 import databaseConfig from './config/database.config';
 import jwtConfig from './config/jwt.config';
 import appConfig from './config/app.config';
@@ -67,6 +68,7 @@ import newsapiConfig from './config/newsapi.config';
     VotesModule,
     ScoringModule,
     NotificationsModule,
+    LeaderboardModule,
   ],
   controllers: [AppController],
   providers: [AppService],

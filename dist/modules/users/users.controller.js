@@ -55,6 +55,9 @@ let UsersController = class UsersController {
     async getCurrentScore(req) {
         return await this.usersService.getCurrentScore(req.user.userId);
     }
+    async getPersonalStats(req) {
+        return await this.usersService.getPersonalStats(req.user.userId);
+    }
 };
 exports.UsersController = UsersController;
 __decorate([
@@ -210,6 +213,57 @@ __decorate([
     __metadata("design:paramtypes", [Object]),
     __metadata("design:returntype", Promise)
 ], UsersController.prototype, "getCurrentScore", null);
+__decorate([
+    (0, common_1.Get)('stats/personal'),
+    (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
+    (0, swagger_1.ApiOperation)({ summary: 'Estatísticas pessoais do usuário' }),
+    (0, swagger_1.ApiResponse)({
+        status: 200,
+        description: 'Estatísticas retornadas',
+        schema: {
+            type: 'object',
+            properties: {
+                totalVotes: { type: 'number', example: 127 },
+                consistentStreak: { type: 'number', example: 15 },
+                lastVoteAt: { type: 'string', format: 'date-time', nullable: true },
+                accountAge: { type: 'number', example: 45, description: 'Dias desde criação da conta' },
+                currentScore: {
+                    type: 'object',
+                    properties: {
+                        baseScore: { type: 'number' },
+                        verificationBonus: { type: 'number' },
+                        historyScore: { type: 'number' },
+                        consistencyScore: { type: 'number' },
+                        finalScore: { type: 'number' },
+                        weight: { type: 'number' },
+                    },
+                },
+                ranking: {
+                    type: 'object',
+                    properties: {
+                        position: { type: 'number', example: 42 },
+                        total: { type: 'number', example: 1500 },
+                        percentile: { type: 'string', example: '97.2' },
+                    },
+                },
+                dailyActivity: {
+                    type: 'array',
+                    items: {
+                        type: 'object',
+                        properties: {
+                            date: { type: 'string', format: 'date' },
+                            votes: { type: 'number' },
+                        },
+                    },
+                },
+            },
+        },
+    }),
+    __param(0, (0, common_1.Request)()),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [Object]),
+    __metadata("design:returntype", Promise)
+], UsersController.prototype, "getPersonalStats", null);
 exports.UsersController = UsersController = __decorate([
     (0, swagger_1.ApiTags)('users'),
     (0, common_1.Controller)('users'),

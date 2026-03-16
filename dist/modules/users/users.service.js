@@ -256,6 +256,43 @@ let UsersService = class UsersService {
     async getCurrentScore(userId) {
         return await this.scoringService.calculateUserScore(userId);
     }
+    async getPersonalStats(userId) {
+        const user = await this.findOne(userId);
+        const score = await this.scoringService.calculateUserScore(userId);
+        const thirtyDaysAgo = new Date();
+        thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+        const dailyActivity = await this.usersRepository.query(`
+      SELECT 
+        DATE(created_at) as date,
+        COUNT(*) as votes
+      FROM poll_votes
+      WHERE user_id = $1 AND created_at >= $2
+      GROUP BY DATE(created_at)
+      ORDER BY date ASC
+    `, [userId, thirtyDaysAgo]);
+        const ranking = await this.usersRepository.query(`
+      SELECT COUNT(*) + 1 as position
+      FROM users
+      WHERE total_votes > $1
+    `, [user.totalVotes]);
+        const totalUsers = await this.usersRepository.count();
+        return {
+            totalVotes: user.totalVotes,
+            consistentStreak: user.consistentVotingDays,
+            lastVoteAt: user.lastVoteAt,
+            accountAge: Math.floor((Date.now() - user.createdAt.getTime()) / (1000 * 60 * 60 * 24)),
+            currentScore: score,
+            ranking: {
+                position: ranking[0]?.position || totalUsers,
+                total: totalUsers,
+                percentile: ((totalUsers - (ranking[0]?.position || totalUsers) + 1) / totalUsers * 100).toFixed(1),
+            },
+            dailyActivity: dailyActivity.map((day) => ({
+                date: day.date,
+                votes: parseInt(day.votes),
+            })),
+        };
+    }
 };
 exports.UsersService = UsersService;
 exports.UsersService = UsersService = __decorate([

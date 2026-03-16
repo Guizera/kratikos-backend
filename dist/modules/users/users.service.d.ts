@@ -34,4 +34,17 @@ export declare class UsersService {
     }>;
     removeCpf(userId: string): Promise<void>;
     getCurrentScore(userId: string): Promise<import("../scoring/simple-scoring.service").UserScore>;
+    getPersonalStats(userId: string): Promise<{
+        totalVotes: number;
+        consistentStreak: number;
+        lastVoteAt: Date;
+        accountAge: number;
+        currentScore: import("../scoring/simple-scoring.service").UserScore;
+        ranking: {
+            position: any;
+            total: number;
+            percentile: string;
+        };
+        dailyActivity: any;
+    }>;
 }

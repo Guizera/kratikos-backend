@@ -165,4 +165,53 @@ export class UsersController {
   async getCurrentScore(@Request() req) {
     return await this.usersService.getCurrentScore(req.user.userId);
   }
+
+  @Get('stats/personal')
+  @UseGuards(JwtAuthGuard)
+  @ApiOperation({ summary: 'Estatísticas pessoais do usuário' })
+  @ApiResponse({ 
+    status: 200,
+    description: 'Estatísticas retornadas',
+    schema: {
+      type: 'object',
+      properties: {
+        totalVotes: { type: 'number', example: 127 },
+        consistentStreak: { type: 'number', example: 15 },
+        lastVoteAt: { type: 'string', format: 'date-time', nullable: true },
+        accountAge: { type: 'number', example: 45, description: 'Dias desde criação da conta' },
+        currentScore: {
+          type: 'object',
+          properties: {
+            baseScore: { type: 'number' },
+            verificationBonus: { type: 'number' },
+            historyScore: { type: 'number' },
+            consistencyScore: { type: 'number' },
+            finalScore: { type: 'number' },
+            weight: { type: 'number' },
+          },
+        },
+        ranking: {
+          type: 'object',
+          properties: {
+            position: { type: 'number', example: 42 },
+            total: { type: 'number', example: 1500 },
+            percentile: { type: 'string', example: '97.2' },
+          },
+        },
+        dailyActivity: {
+          type: 'array',
+          items: {
+            type: 'object',
+            properties: {
+              date: { type: 'string', format: 'date' },
+              votes: { type: 'number' },
+            },
+          },
+        },
+      },
+    },
+  })
+  async getPersonalStats(@Request() req) {
+    return await this.usersService.getPersonalStats(req.user.userId);
+  }
 }

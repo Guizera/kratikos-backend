@@ -30,4 +30,17 @@ export declare class UsersController {
         };
     }>;
     getCurrentScore(req: any): Promise<import("../scoring/simple-scoring.service").UserScore>;
+    getPersonalStats(req: any): Promise<{
+        totalVotes: number;
+        consistentStreak: number;
+        lastVoteAt: Date;
+        accountAge: number;
+        currentScore: import("../scoring/simple-scoring.service").UserScore;
+        ranking: {
+            position: any;
+            total: number;
+            percentile: string;
+        };
+        dailyActivity: any;
+    }>;
 }
